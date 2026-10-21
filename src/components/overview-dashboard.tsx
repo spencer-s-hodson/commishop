@@ -6,6 +6,7 @@ import { Fragment, useEffect, useMemo } from "react";
 import { useActiveLeague } from "@/components/active-league-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,8 +14,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "cn";
+import { ChevronDownIcon } from "lucide-react";
 import { api } from "@/trpc/react";
 
 function formatRecord(wins: number, losses: number, ties: number) {
@@ -141,29 +149,47 @@ export function OverviewDashboard() {
           </div>
         </div>
 
-        <label className="flex items-center gap-2 text-sm">
-          <span className="text-muted-foreground">Matchup week</span>
-          <select
-            className={cn(
-              "border-input h-8 min-w-44 rounded-lg border bg-transparent px-2.5 text-sm outline-none",
-              "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3",
-            )}
-            value={overview.selectedMatchupPeriod}
-            onChange={(event) => selectWeek(Number(event.target.value))}
-          >
-            {overview.matchupPeriodOptions.map((option) => (
-              <option
-                key={option.matchupPeriodId}
-                value={option.matchupPeriodId}
-              >
-                {option.label}
-                {option.matchupPeriodId === overview.currentMatchupPeriod
-                  ? " · now"
-                  : ""}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="flex flex-col gap-1">
+          <span className="text-muted-foreground text-xs font-medium">
+            Matchup week
+          </span>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="min-w-44 justify-between gap-1.5"
+                />
+              }
+            >
+              <span className="truncate">
+                {selectedOption?.label ??
+                  `Week ${overview.selectedMatchupPeriod}`}
+                {viewingCurrent ? " · now" : ""}
+              </span>
+              <ChevronDownIcon className="opacity-60" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-44">
+              {overview.matchupPeriodOptions.map((option) => (
+                <DropdownMenuItem
+                  key={option.matchupPeriodId}
+                  onClick={() => selectWeek(option.matchupPeriodId)}
+                  className={
+                    option.matchupPeriodId === overview.selectedMatchupPeriod
+                      ? "bg-accent font-medium"
+                      : undefined
+                  }
+                >
+                  {option.label}
+                  {option.matchupPeriodId === overview.currentMatchupPeriod
+                    ? " · now"
+                    : ""}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <section className="flex flex-col gap-3">

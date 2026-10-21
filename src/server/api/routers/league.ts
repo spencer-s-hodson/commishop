@@ -2,13 +2,17 @@ import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
+import {
+  emptyToNull,
+  privateLeagueCredentialsError,
+} from "@/server/api/league-connect";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { fantasyLeague } from "@/server/db/schema";
 import {
   fetchEspnLeagueOverview,
   fetchEspnLeagueSummary,
-} from "@/server/espn/client";
-import { toDisplayLogoUrl } from "@/server/espn/logo";
+} from "@/server/espn/overview";
+import { toDisplayLogoUrl } from "@/server/espn/logo-url";
 import {
   ensureEditionBlurbs,
   ensurePreseasonEdition,
@@ -23,12 +27,6 @@ const connectInput = z.object({
   espnS2: z.string().trim().optional(),
   swid: z.string().trim().optional(),
 });
-
-function emptyToNull(value: string | undefined) {
-  const trimmed = value?.trim();
-  if (!trimmed) return null;
-  return trimmed;
-}
 
 export const leagueRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -55,10 +53,11 @@ export const leagueRouter = createTRPCRouter({
       const espnS2 = emptyToNull(input.espnS2);
       const swid = emptyToNull(input.swid);
 
-      if ((espnS2 && !swid) || (!espnS2 && swid)) {
+      const credentialsError = privateLeagueCredentialsError(espnS2, swid);
+      if (credentialsError) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Provide both espn_s2 and SWID for private leagues.",
+          message: credentialsError,
         });
       }
 

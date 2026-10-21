@@ -9,21 +9,20 @@ import {
 } from "@/server/db/schema";
 import {
   fetchEspnBlurbRosterContext,
-  fetchEspnBlurbScheduleContext,
+} from "@/server/espn/blurb-context";
+import {
   fetchEspnDraftDayRankings,
   fetchEspnMatchupPeriodOptions,
   fetchEspnPowerRankings,
-  type EspnCredentials,
-} from "@/server/espn/client";
+} from "@/server/espn/power-feed";
+import type { EspnCredentials } from "@/server/espn/shared";
+import { buildPowerRankingBlurbRequest } from "@/server/espn/power-ranking-blurb-prompt";
+import { resolveBlurbScheduleContext } from "@/server/espn/power-ranking-blurb-schedule";
+import { generatePowerRankingBlurbs } from "@/server/espn/power-ranking-blurbs";
 import {
-  buildPowerRankingBlurbRequest,
-  generatePowerRankingBlurbs,
-} from "@/server/espn/power-ranking-blurbs";
-import {
-  buildMockScheduleContext,
-  isMockMatchupPeriod,
-  strengthFromPreseason,
-} from "@/server/espn/power-ranking-mock";
+  evaluatePublishHourGate,
+  matchupsEndingOn,
+} from "@/server/espn/power-ranking-publish-policy";
 
 export type ConnectedLeagueRow = {
   id: string;
@@ -140,60 +139,14 @@ export async function ensureEditionBlurbs(editionId: string) {
       edition.entries.map((entry) => [entry.teamId, entry.rank]),
     );
 
-    let schedule = null;
-    if (kind === "match" && edition.throughMatchupPeriod > 0) {
-      if (isMockMatchupPeriod(edition.matchupPeriodId)) {
-        // Rebuild the same deterministic slate the mock seed used.
-        const preseason = await findPreseasonEdition(league.id);
-        const preseasonEntries = preseason
-          ? await db.query.powerRankingEntry.findMany({
-              where: eq(powerRankingEntry.editionId, preseason.id),
-              columns: {
-                teamId: true,
-                rank: true,
-                powerScore: true,
-              },
-            })
-          : [];
-        const teamCount =
-          preseasonEntries.length > 0
-            ? preseasonEntries.length
-            : edition.entries.length;
-        const strengthByTeamId = new Map(
-          preseasonEntries.map((entry) => [
-            entry.teamId,
-            strengthFromPreseason({
-              rank: entry.rank,
-              powerScore: entry.powerScore,
-              teamCount,
-            }),
-          ]),
-        );
-        schedule = buildMockScheduleContext({
-          teams: edition.entries.map((entry) => ({
-            teamId: entry.teamId,
-            name: entry.name,
-            abbrev: entry.abbrev,
-            logoUrl: entry.logoUrl,
-            ownerName: entry.ownerName,
-            strength:
-              strengthByTeamId.get(entry.teamId) ??
-              teamCount + 1 - entry.rank,
-          })),
-          throughWeek: edition.throughMatchupPeriod,
-          seedKey: `${league.id}:mock-power`,
-          rankByTeamId,
-        });
-      } else {
-        schedule = await fetchEspnBlurbScheduleContext(
-          league.espnLeagueId,
-          league.seasonYear,
-          edition.throughMatchupPeriod,
-          rankByTeamId,
-          credentialsFor(league),
-        );
-      }
-    }
+    const schedule = await resolveBlurbScheduleContext({
+      league,
+      kind,
+      matchupPeriodId: edition.matchupPeriodId,
+      throughMatchupPeriod: edition.throughMatchupPeriod,
+      entries: edition.entries,
+      rankByTeamId,
+    });
 
     let rosterByTeam = null;
     try {
@@ -386,60 +339,29 @@ export async function publishMatchEdition(
   return { edition: edition!, created: true as const };
 }
 
-const DENVER_TZ = "America/Denver";
-
-/** Calendar YYYY-MM-DD in America/Denver. */
-export function denverYmd(date: Date = new Date()) {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: DENVER_TZ,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(date);
-}
-
-/** Hour 0–23 in America/Denver. */
-export function denverHour(date: Date = new Date()) {
-  const hour = Number(
-    new Intl.DateTimeFormat("en-US", {
-      timeZone: DENVER_TZ,
-      hour: "numeric",
-      hour12: false,
-    }).format(date),
-  );
-  // en-US hour12:false can yield "24" for midnight in some engines
-  return hour === 24 ? 0 : hour;
-}
-
-/** Yesterday's calendar date in America/Denver (YYYY-MM-DD). */
-export function denverYesterdayYmd(date: Date = new Date()) {
-  const today = denverYmd(date);
-  const [y, m, d] = today.split("-").map(Number);
-  // Calendar arithmetic on Denver's Y-M-D (avoid DST edge cases).
-  const yesterday = new Date(Date.UTC(y!, m! - 1, d! - 1));
-  const yy = yesterday.getUTCFullYear();
-  const mm = String(yesterday.getUTCMonth() + 1).padStart(2, "0");
-  const dd = String(yesterday.getUTCDate()).padStart(2, "0");
-  return `${yy}-${mm}-${dd}`;
-}
-
 /**
- * Publish Match N editions for leagues where yesterday (Denver) equals a
- * matchup period's ESPN endDate. Also ensures preseason exists.
+ * Daily wake-up check. Publishes Match N only when ESPN's Eastern calendar
+ * says a matchup ended yesterday — i.e. 10am Utah the morning after a period
+ * ends (weekly, biweekly, etc.).
+ *
+ * DST: Vercel cron is UTC-only, so vercel.json registers two daily wakes:
+ *   - `0 16 * * *` → 10:00–10:59 Utah during MDT
+ *   - `0 17 * * *` → 10:00–10:59 Utah during MST
+ * The handler only proceeds when Utah local hour is 10 (the off-season wake
+ * no-ops). Calendar math uses IANA zones so spring/fall do not skew "yesterday".
  */
 export async function runPowerRankingPublishJob(options?: {
   /** Override "now" for tests. */
   now?: Date;
-  /** Force run even when Denver hour is not 10. */
+  /** Force run even outside the Utah 10am hour. */
   force?: boolean;
 }) {
   const now = options?.now ?? new Date();
-  const hour = denverHour(now);
-  // Daily cron at 16:00 UTC lands near 9–10am Denver depending on DST.
-  if (!options?.force && (hour < 9 || hour > 11)) {
+  const gate = evaluatePublishHourGate(now, { force: options?.force });
+  if (gate.skipped) {
     return {
       skipped: true as const,
-      reason: `Denver hour is ${hour}, expected 9–11 for daily cron`,
+      reason: gate.reason,
       published: [] as Array<{
         fantasyLeagueId: string;
         matchupPeriodId: number;
@@ -448,7 +370,7 @@ export async function runPowerRankingPublishJob(options?: {
     };
   }
 
-  const yesterday = denverYesterdayYmd(now);
+  const { yesterday } = gate;
   const leagues = await db.query.fantasyLeague.findMany();
   const published: Array<{
     fantasyLeagueId: string;
@@ -466,8 +388,7 @@ export async function runPowerRankingPublishJob(options?: {
         credentialsFor(league),
       );
 
-      for (const option of optionsList) {
-        if (option.endDate !== yesterday) continue;
+      for (const option of matchupsEndingOn(optionsList, yesterday)) {
         const result = await publishMatchEdition(
           league,
           option.matchupPeriodId,

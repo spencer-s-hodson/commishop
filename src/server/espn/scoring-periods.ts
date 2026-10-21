@@ -1,5 +1,3 @@
-import "server-only";
-
 /**
  * ESPN fantasy basketball calendar:
  * - Daily scoring periods are calendar days (constants.scoringPeriods)

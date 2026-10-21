@@ -8,14 +8,10 @@ import {
   powerRankingEdition,
   powerRankingEntry,
 } from "@/server/db/schema";
-import {
-  fetchEspnBlurbRosterContext,
-  type EspnCredentials,
-} from "@/server/espn/client";
-import {
-  buildPowerRankingBlurbRequest,
-  generatePowerRankingBlurbs,
-} from "@/server/espn/power-ranking-blurbs";
+import { fetchEspnBlurbRosterContext } from "@/server/espn/blurb-context";
+import type { EspnCredentials } from "@/server/espn/shared";
+import { buildPowerRankingBlurbRequest } from "@/server/espn/power-ranking-blurb-prompt";
+import { generatePowerRankingBlurbs } from "@/server/espn/power-ranking-blurbs";
 import {
   buildMockScheduleContext,
   computeMockMatchSnapshot,

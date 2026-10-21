@@ -1,5 +1,3 @@
-import "server-only";
-
 import { NON_SCORING_SLOTS } from "@/server/espn/scoring-periods";
 import { espnStyleWinProbability } from "@/server/espn/win-probability";
 

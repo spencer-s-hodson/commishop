@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 import { getSession } from "@/server/better-auth/server";
 import { db } from "@/server/db";
 import { fantasyLeague } from "@/server/db/schema";
-import { isEspnCustomLogoUrl } from "@/server/espn/logo";
+import { isEspnCustomLogoUrl } from "@/server/espn/logo-url";
 
 export async function GET(request: NextRequest) {
   const session = await getSession();

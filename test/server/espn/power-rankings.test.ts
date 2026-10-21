@@ -8,7 +8,7 @@ import {
   squareMatrix,
   twoStepDominance,
   type PowerRankingWeeklyResult,
-} from "./power-rankings";
+} from "@/server/espn/power-rankings";
 
 describe("squareMatrix / addMatrix", () => {
   it("squares and adds 2x2 matrices", () => {

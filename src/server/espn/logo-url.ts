@@ -1,5 +1,3 @@
-import "server-only";
-
 const MYSTIQUE_HOST = "mystique-api.fantasy.espn.com";
 const MYSTIQUE_PATH_PREFIX = "/apis/v1/domains/lm/images/";
 

@@ -6,7 +6,12 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: [".next", "node_modules", "eslint.config.js"],
+    ignores: [
+      ".next",
+      "node_modules",
+      "eslint.config.js",
+      "scripts/**/*.{mjs,cjs,js}",
+    ],
   },
   ...tseslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,

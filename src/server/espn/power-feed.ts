@@ -18,9 +18,7 @@ import {
   normalizeLogoUrl,
   sideMatchupScore,
   type EspnCredentials,
-  type EspnLeagueResponse,
   type EspnScheduleEntry,
-  type EspnScheduleSide,
   type EspnTeam,
 } from "@/server/espn/shared";
 

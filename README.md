@@ -1,29 +1,92 @@
-# Create T3 App
+# Commishop
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+Your fantasy basketball commissioner desk — power rankings, matchups, and league intel.
 
-## What's next? How do I make an app with this?
+**Commishop** connects ESPN Fantasy Basketball leagues and gives commissioners a single place to track live standings, model matchup win probability, and publish locked weekly power rankings with AI write-ups.
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+## Features
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+- **ESPN league sync** — Connect public or private leagues (via `espn_s2` / `SWID` cookies); switch between multiple connected leagues
+- **Overview desk** — Live standings, matchup week selector, projected scores, category records, and ESPN-style win probabilities
+- **Power rankings** — Immutable editions (preseason + post–Match N) with rank movement and 4–5 sentence AI blurbs
+- **Shareable exports** — Export rankings cards as PNG or PDF for league chats
+- **Scheduled publish** — Daily Vercel Cron job gates on Utah 10am and creates Match N editions when ESPN’s calendar says a matchup ended
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+## How it works
 
-## Learn More
+```
+User → Better Auth session
+     → tRPC (league.*)
+     → Postgres (league credentials + locked ranking editions)
+     → ESPN Fantasy adapter (live standings / matchups / power feed)
+     → OpenAI (blurbs) on publish / backfill
+     → Overview & Power Rankings UI
+```
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+1. **Auth & invite gate** — Better Auth (email/password + optional Google). Signup can be limited with `AUTH_ALLOWED_EMAILS`.
+2. **League connection** — Credentials live in Postgres; live ESPN data is fetched on demand through a server-side adapter (shared fetch, overview, power feed, blurb context).
+3. **Overview** — Combines league views, matchup projections, win-probability modeling, and NBA scoreboard progress for in-progress games.
+4. **Power rankings** — Ranks use an ESPN FF–style formula (`dominance` + average score + margin of victory). Editions are **immutable snapshots**, not live recomputes. Preseason is created lazily; Match N editions are published by cron.
+5. **Blurbs** — Structured OpenAI prompts with Zod-validated JSON responses; stored on each ranking entry and backfilled idempotently if missing.
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+Domain terms (edition, blurb, publish job, etc.) are defined in [`GLOSSARY.md`](./GLOSSARY.md).
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+## Tech stack
 
-## How do I deploy this?
+| Layer | Choice |
+| --- | --- |
+| App | Next.js (App Router), React, TypeScript |
+| API | tRPC + TanStack Query |
+| Auth | Better Auth |
+| Database | PostgreSQL + Drizzle ORM |
+| AI | OpenAI (power-ranking blurbs) |
+| UI | Tailwind CSS, shadcn / Base UI |
+| Hosting | Vercel (Fluid Compute + Cron) |
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+Scaffolded with [Create T3 App](https://create.t3.gg/); product code lives under `src/app`, `src/server`, and `src/components`.
+
+## Local development
+
+**Prerequisites:** Node.js 22+, Docker (or Podman) for Postgres, and the env vars below.
+
+```bash
+cp .env.example .env
+# fill in BETTER_AUTH_SECRET, DATABASE_URL, etc.
+
+./start-database.sh   # local Postgres from DATABASE_URL
+npm install
+npm run db:push
+npm run dev
+```
+
+| Script | Purpose |
+| --- | --- |
+| `npm run dev` | Dev server |
+| `npm run build` / `start` | Production build & serve |
+| `npm run db:generate` / `db:migrate` / `db:push` / `db:studio` | Drizzle Kit |
+| `npm test` | Unit tests (`tsx --test`) |
+| `npm run check` | ESLint + TypeScript |
+
+### Environment
+
+See [`.env.example`](./.env.example). Required for a full local run:
+
+- `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`
+- `DATABASE_URL`
+- `CRON_SECRET` (cron + mock seed routes)
+- `OPENAI_API_KEY` (optional — blurbs skip if unset)
+- `AUTH_ALLOWED_EMAILS` (optional invite allowlist)
+- Google OAuth client ID/secret (optional)
+
+## Project layout
+
+```
+src/app/(dashboard)/     Overview & power rankings (auth-gated)
+src/app/api/             Auth, tRPC, cron, ESPN logo proxy
+src/server/better-auth/  Auth + invite allowlist
+src/server/db/           Schema & client
+src/server/api/          tRPC routers
+src/server/espn/         ESPN adapter, rankings, blurbs, publish job
+src/components/          Dashboards, league picker, brand
+test/                    Unit tests for ranking math, cron policy, etc.
+```

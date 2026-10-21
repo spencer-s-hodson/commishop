@@ -4,8 +4,9 @@ import { env } from "@/env";
 import { runPowerRankingPublishJob } from "@/server/espn/power-ranking-editions";
 
 /**
- * Hourly Vercel cron. Publishes Match N editions at 10:00 America/Denver
- * on the calendar day after a matchup's ESPN endDate.
+ * Daily Vercel cron (Hobby: once/day). Runs ~16:00 UTC ≈ 10:00 America/Denver
+ * (MDT) / 9:00 (MST). Publishes Match N when Denver yesterday equals a
+ * matchup endDate.
  *
  * Auth: Authorization: Bearer <CRON_SECRET> (or ?secret= for local testing).
  */

@@ -435,10 +435,11 @@ export async function runPowerRankingPublishJob(options?: {
 }) {
   const now = options?.now ?? new Date();
   const hour = denverHour(now);
-  if (!options?.force && hour !== 10) {
+  // Daily cron at 16:00 UTC lands near 9–10am Denver depending on DST.
+  if (!options?.force && (hour < 9 || hour > 11)) {
     return {
       skipped: true as const,
-      reason: `Denver hour is ${hour}, expected 10`,
+      reason: `Denver hour is ${hour}, expected 9–11 for daily cron`,
       published: [] as Array<{
         fantasyLeagueId: string;
         matchupPeriodId: number;

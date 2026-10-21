@@ -102,7 +102,11 @@ describe("parseNbaScoreboardProgress", () => {
         {
           competitions: [
             {
-              status: { type: { name: "STATUS_SCHEDULED" }, period: 0, clock: 0 },
+              status: {
+                type: { name: "STATUS_SCHEDULED" },
+                period: 0,
+                clock: 0,
+              },
               competitors: [{ team: { id: "4" } }],
             },
           ],

@@ -3,11 +3,7 @@
 import { useRouter } from "next/navigation";
 import { ChevronsUpDownIcon, LogOutIcon } from "lucide-react";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,9 +37,7 @@ function UserAvatar({
 }) {
   return (
     <Avatar>
-      {user.avatar ? (
-        <AvatarImage src={user.avatar} alt={user.name} />
-      ) : null}
+      {user.avatar ? <AvatarImage src={user.avatar} alt={user.name} /> : null}
       <AvatarFallback suppressHydrationWarning>
         {initials(user.name || "U")}
       </AvatarFallback>

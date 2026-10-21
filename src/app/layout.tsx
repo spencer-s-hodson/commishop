@@ -32,7 +32,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={cn("font-sans", archivo.variable, jetbrainsMono.variable)}>
+    <html
+      lang="en"
+      className={cn("font-sans", archivo.variable, jetbrainsMono.variable)}
+    >
       <body>
         <TRPCReactProvider>
           <TooltipProvider>{children}</TooltipProvider>

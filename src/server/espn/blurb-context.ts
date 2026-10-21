@@ -183,7 +183,10 @@ function rosterProjectedSeasonTotal(
       stat.statSplitTypeId === 0 &&
       (stat.id === `10${seasonYear}` || Boolean(stat.id?.startsWith("10"))),
   );
-  if (typeof projected?.appliedTotal === "number" && projected.appliedTotal > 0) {
+  if (
+    typeof projected?.appliedTotal === "number" &&
+    projected.appliedTotal > 0
+  ) {
     return projected.appliedTotal;
   }
   const prior = list.find(
@@ -199,7 +202,10 @@ function rosterProjectedSeasonTotal(
 /** Map ESPN injury enums to short labels for write-ups (e.g. DAY_TO_DAY → DTD). */
 function normalizeInjuryStatus(status: string | undefined | null) {
   if (!status) return null;
-  const normalized = status.trim().toUpperCase().replace(/[\s-]+/g, "_");
+  const normalized = status
+    .trim()
+    .toUpperCase()
+    .replace(/[\s-]+/g, "_");
   if (!normalized || normalized === "ACTIVE") return null;
 
   const labels: Record<string, string> = {
@@ -326,7 +332,11 @@ export async function fetchEspnBlurbRosterContext(
     const totals = new Map<string, number>();
     for (const position of POSITION_GROUPS) totals.set(position, 0);
     for (const player of raw.players) {
-      if (!POSITION_GROUPS.includes(player.position as (typeof POSITION_GROUPS)[number])) {
+      if (
+        !POSITION_GROUPS.includes(
+          player.position as (typeof POSITION_GROUPS)[number],
+        )
+      ) {
         continue;
       }
       totals.set(
@@ -374,7 +384,8 @@ export async function fetchEspnBlurbRosterContext(
       .slice(0, 6)
       .map(strip);
 
-    const totals = positionTotalsByTeam.get(teamId) ?? new Map();
+    const totals =
+      positionTotalsByTeam.get(teamId) ?? new Map<string, number>();
     const counts = new Map<string, number>();
     for (const position of POSITION_GROUPS) counts.set(position, 0);
     for (const player of raw.players) {
@@ -409,10 +420,14 @@ export async function fetchEspnBlurbRosterContext(
       (group) => group.projectedPpgTotal > 0 || group.playerCount > 0,
     );
     const byBestRank = [...withProduction].sort(
-      (a, b) => a.leagueRank - b.leagueRank || b.projectedPpgTotal - a.projectedPpgTotal,
+      (a, b) =>
+        a.leagueRank - b.leagueRank ||
+        b.projectedPpgTotal - a.projectedPpgTotal,
     );
     const byWorstRank = [...withProduction].sort(
-      (a, b) => b.leagueRank - a.leagueRank || a.projectedPpgTotal - b.projectedPpgTotal,
+      (a, b) =>
+        b.leagueRank - a.leagueRank ||
+        a.projectedPpgTotal - b.projectedPpgTotal,
     );
     const best = byBestRank[0];
     const worst = byWorstRank[0];

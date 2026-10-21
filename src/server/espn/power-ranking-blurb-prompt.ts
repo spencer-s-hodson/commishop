@@ -231,7 +231,7 @@ Do **not** use whole-roster or top-five summed projected-PPG totals.
 - 4–5 sentences (prefer 5). About 90–140 words.
 - Valid JSON only:
   {"blurbs":[{"teamId":123,"blurb":"..."}, ...]}
-- Every input teamId exactly once.`
+- Every input teamId exactly once.`;
 
 /** Parse ESPN owner string ("First Last" or "A B, C D") into first names. */
 export function managerFirstNames(ownerName: string | null | undefined) {
@@ -353,13 +353,11 @@ export function buildPowerRankingBlurbRequest(input: {
     let streamingSignal: BlurbTeamInput["streamingSignal"] = null;
     if (input.kind === "match" && gamesPlayed(entry) > 0) {
       const draftRank = roster?.draftDayProjectedRank ?? null;
-      const spotsAheadOfDraft =
-        draftRank != null ? draftRank - pfRank : null;
+      const spotsAheadOfDraft = draftRank != null ? draftRank - pfRank : null;
       const outperformingDraft =
         spotsAheadOfDraft != null && spotsAheadOfDraft >= 3;
       const hasSeriousInjuries = (roster?.injuredPlayers.length ?? 0) > 0;
-      const streamingLikelyNeeded =
-        outperformingDraft && hasSeriousInjuries;
+      const streamingLikelyNeeded = outperformingDraft && hasSeriousInjuries;
       const summary = !outperformingDraft
         ? draftRank == null
           ? `PF rank #${pfRank}; no draft-day rank to compare.`
@@ -455,4 +453,3 @@ function round2(value: number) {
 function round3(value: number) {
   return Number(value.toFixed(3));
 }
-

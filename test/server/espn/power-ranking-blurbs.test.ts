@@ -21,12 +21,12 @@ describe("managerFirstNames", () => {
 
 describe("formatManagersLabel", () => {
   it("joins co-managers with and", () => {
-    assert.equal(formatManagersLabel(["Sadria", "Grayson"]), "Sadria and Grayson");
-    assert.equal(formatManagersLabel(["Sam"]), "Sam");
     assert.equal(
-      formatManagersLabel(["A", "B", "C"]),
-      "A, B, and C",
+      formatManagersLabel(["Sadria", "Grayson"]),
+      "Sadria and Grayson",
     );
+    assert.equal(formatManagersLabel(["Sam"]), "Sam");
+    assert.equal(formatManagersLabel(["A", "B", "C"]), "A, B, and C");
   });
 });
 
@@ -110,9 +110,7 @@ describe("buildPowerRankingBlurbRequest", () => {
       },
     });
 
-    assert.doesNotThrow(() =>
-      powerRankingBlurbRequestSchema.parse(request),
-    );
+    assert.doesNotThrow(() => powerRankingBlurbRequestSchema.parse(request));
     assert.equal(request.league.format, "redraft_snake");
     assert.deepEqual(request.teams[0]?.managerFirstNames, [
       "Sadria",

@@ -105,8 +105,16 @@ export type EspnLeagueOverview = {
   matchups: EspnMatchupCard[];
 };
 
-function formatStreak(streakType: string | undefined, streakLength: number | undefined) {
-  if (!streakType || streakType === "NONE" || !streakLength || streakLength <= 0) {
+function formatStreak(
+  streakType: string | undefined,
+  streakLength: number | undefined,
+) {
+  if (
+    !streakType ||
+    streakType === "NONE" ||
+    !streakLength ||
+    streakLength <= 0
+  ) {
     return null;
   }
   if (streakType === "WIN") return `W${streakLength}`;
@@ -239,7 +247,9 @@ export async function fetchEspnLeagueOverview(
   const requestedPeriod = options?.matchupPeriodId;
   const selectedMatchupPeriod =
     requestedPeriod != null &&
-    matchupPeriodOptions.some((option) => option.matchupPeriodId === requestedPeriod)
+    matchupPeriodOptions.some(
+      (option) => option.matchupPeriodId === requestedPeriod,
+    )
       ? requestedPeriod
       : currentMatchupPeriod;
 
@@ -392,7 +402,12 @@ export async function fetchEspnLeagueOverview(
       home: toMatchupSide(entry.home, teamMap, "HOME", homeProjection),
       away:
         entry.away?.teamId != null
-          ? toMatchupSide(entry.away, teamMap, "AWAY", awayProjection ?? undefined)
+          ? toMatchupSide(
+              entry.away,
+              teamMap,
+              "AWAY",
+              awayProjection ?? undefined,
+            )
           : null,
       homeWinProbability: winModel?.homeWinProbability ?? null,
       awayWinProbability: winModel?.awayWinProbability ?? null,

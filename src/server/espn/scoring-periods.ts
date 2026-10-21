@@ -95,9 +95,9 @@ export function scoringPeriodsForMatchup(input: {
   /** Fallback if constants / mapping are unavailable. */
   fallbackScoringPeriodIds?: number[];
 }) {
-  const weeklyIds =
-    input.matchupPeriods?.[String(input.matchupPeriodId)] ??
-    [input.matchupPeriodId];
+  const weeklyIds = input.matchupPeriods?.[String(input.matchupPeriodId)] ?? [
+    input.matchupPeriodId,
+  ];
 
   const weeklyMap = weeklyPeriodById(input.constants);
   const scoringIds = new Set<number>();

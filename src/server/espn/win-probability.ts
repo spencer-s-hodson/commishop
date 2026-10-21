@@ -33,8 +33,7 @@ export function espnStyleWinProbability(input: {
   const margin = input.teamProjected - input.opponentProjected;
   const teamSpread = input.teamCeiling - input.teamProjected;
   const opponentSpread = input.opponentCeiling - input.opponentProjected;
-  const variance =
-    (Math.pow(teamSpread, 2) + Math.pow(opponentSpread, 2)) / 2;
+  const variance = (Math.pow(teamSpread, 2) + Math.pow(opponentSpread, 2)) / 2;
   const sd = Math.sqrt(Math.max(variance, 0));
 
   if (!(input.teamProjected || input.opponentProjected)) {

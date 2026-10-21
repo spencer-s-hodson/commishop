@@ -26,12 +26,8 @@ import {
 export function LeaguePicker() {
   const { isMobile } = useSidebar();
   const [connectOpen, setConnectOpen] = useState(false);
-  const {
-    leagues,
-    leaguesLoading,
-    activeLeague,
-    setActiveLeague,
-  } = useActiveLeague();
+  const { leagues, leaguesLoading, activeLeague, setActiveLeague } =
+    useActiveLeague();
 
   if (leaguesLoading) {
     return (
@@ -82,7 +78,7 @@ export function LeaguePicker() {
               sideOffset={4}
             >
               <DropdownMenuGroup>
-                <DropdownMenuLabel className="text-xs text-muted-foreground">
+                <DropdownMenuLabel className="text-muted-foreground text-xs">
                   Your leagues
                 </DropdownMenuLabel>
                 {leagues.length === 0 ? (
@@ -99,7 +95,7 @@ export function LeaguePicker() {
                     >
                       <div className="flex flex-col gap-0.5">
                         <span className="font-medium">{league.name}</span>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-muted-foreground text-xs">
                           {league.seasonYear}
                           {league.isPrivate ? " · Private" : " · Public"}
                         </span>

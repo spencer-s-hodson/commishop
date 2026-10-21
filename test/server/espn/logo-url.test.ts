@@ -1,10 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import {
-  isEspnCustomLogoUrl,
-  toDisplayLogoUrl,
-} from "@/server/espn/logo-url";
+import { isEspnCustomLogoUrl, toDisplayLogoUrl } from "@/server/espn/logo-url";
 
 describe("isEspnCustomLogoUrl", () => {
   it("detects mystique custom uploads", () => {

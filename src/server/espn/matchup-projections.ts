@@ -115,7 +115,10 @@ export function collectActivePlayerIds(side: ScheduleSide | undefined) {
   return ids;
 }
 
-function seasonProjectionPerGame(stats: PlayerStat[] | undefined, seasonYear: number) {
+function seasonProjectionPerGame(
+  stats: PlayerStat[] | undefined,
+  seasonYear: number,
+) {
   const list = stats ?? [];
   const projected = list.find(
     (stat) =>
@@ -123,7 +126,10 @@ function seasonProjectionPerGame(stats: PlayerStat[] | undefined, seasonYear: nu
       stat.statSplitTypeId === 0 &&
       (stat.id === `10${seasonYear}` || Boolean(stat.id?.startsWith("10"))),
   );
-  if (typeof projected?.appliedTotal === "number" && projected.appliedTotal > 0) {
+  if (
+    typeof projected?.appliedTotal === "number" &&
+    projected.appliedTotal > 0
+  ) {
     return projected.appliedTotal / GAMES_PER_SEASON;
   }
 
@@ -198,9 +204,7 @@ export function projectMatchupSide(input: {
     const playerId = entry.playerId;
     const proTeamId = player?.proTeamId;
     const injury =
-      (playerId != null
-        ? input.injuryByPlayerId?.get(playerId)
-        : undefined) ??
+      (playerId != null ? input.injuryByPlayerId?.get(playerId) : undefined) ??
       player?.injuryStatus ??
       entry.injuryStatus;
     // OUT: keep live ESPN points; project no remaining games/points.

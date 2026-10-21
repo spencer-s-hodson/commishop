@@ -21,7 +21,7 @@ export function AuthShell({ children }: AuthShellProps) {
       </div>
       <div
         aria-hidden
-        className="dark relative hidden overflow-hidden bg-sidebar text-foreground lg:block"
+        className="dark bg-sidebar text-foreground relative hidden overflow-hidden lg:block"
       >
         <div className="bg-court-dots absolute inset-0 mask-[radial-gradient(ellipse_70%_60%_at_85%_20%,black,transparent)]" />
         <div className="absolute inset-x-12 bottom-12">
@@ -32,9 +32,9 @@ export function AuthShell({ children }: AuthShellProps) {
             <br />
             <span className="text-brand">a pro.</span>
           </p>
-          <p className="mt-6 max-w-sm text-base text-muted-foreground">
-            Your fantasy basketball commissioner desk: power rankings,
-            matchups, and league intel in one place.
+          <p className="text-muted-foreground mt-6 max-w-sm text-base">
+            Your fantasy basketball commissioner desk: power rankings, matchups,
+            and league intel in one place.
           </p>
         </div>
       </div>

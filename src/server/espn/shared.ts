@@ -310,7 +310,9 @@ export async function fetchEspnGameConstants(
   const html = await response.text();
   const constants = parseGameConstantsFromScoreboardHtml(html);
   if (!constants) {
-    throw new Error("ESPN matchup calendar was missing from the scoreboard page.");
+    throw new Error(
+      "ESPN matchup calendar was missing from the scoreboard page.",
+    );
   }
 
   gameConstantsCache.set(seasonYear, { constants, fetchedAt: Date.now() });
@@ -359,7 +361,10 @@ export async function fetchPlayerProjections(
         stat.statSplitTypeId === 0 &&
         (stat.id === `10${seasonYear}` || Boolean(stat.id?.startsWith("10"))),
     );
-    if (typeof projected?.appliedTotal === "number" && projected.appliedTotal > 0) {
+    if (
+      typeof projected?.appliedTotal === "number" &&
+      projected.appliedTotal > 0
+    ) {
       projectionByPlayerId.set(playerId, projected.appliedTotal / 82);
       continue;
     }
@@ -392,7 +397,10 @@ export async function fetchNbaScoreboard() {
 }
 
 export function teamDisplayName(team: EspnTeam) {
-  const composed = [team.location, team.nickname].filter(Boolean).join(" ").trim();
+  const composed = [team.location, team.nickname]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
   const name = team.name?.trim();
   if (name) return name;
   if (composed) return composed;
@@ -401,7 +409,9 @@ export function teamDisplayName(team: EspnTeam) {
   return `Team ${team.id ?? "?"}`;
 }
 
-export function normalizeLogoUrl(logo: string | null | undefined): string | null {
+export function normalizeLogoUrl(
+  logo: string | null | undefined,
+): string | null {
   const value = logo?.trim();
   if (!value) return null;
   if (value.startsWith("http://") || value.startsWith("https://")) return value;
@@ -470,7 +480,6 @@ export function buildTeamMap(teams: EspnTeam[], members: Map<string, string>) {
 
   return map;
 }
-
 
 export function buildInjuryByPlayerId(teams: EspnTeam[]) {
   const map = new Map<number, string>();

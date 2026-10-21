@@ -20,7 +20,7 @@ function PowerRankingsPageFallback() {
         {Array.from({ length: 6 }).map((_, index) => (
           <div
             key={index}
-            className="flex items-start gap-3 rounded-xl border border-border/60 p-4"
+            className="border-border/60 flex items-start gap-3 rounded-xl border p-4"
           >
             <Skeleton className="size-10 shrink-0 rounded-full" />
             <div className="flex flex-1 flex-col gap-2">

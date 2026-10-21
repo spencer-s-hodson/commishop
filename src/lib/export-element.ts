@@ -22,11 +22,19 @@ export function buildExportFilename(
 
 function resolveBackgroundColor(node: HTMLElement) {
   const fromNode = getComputedStyle(node).backgroundColor;
-  if (fromNode && fromNode !== "rgba(0, 0, 0, 0)" && fromNode !== "transparent") {
+  if (
+    fromNode &&
+    fromNode !== "rgba(0, 0, 0, 0)" &&
+    fromNode !== "transparent"
+  ) {
     return fromNode;
   }
   const fromBody = getComputedStyle(document.body).backgroundColor;
-  if (fromBody && fromBody !== "rgba(0, 0, 0, 0)" && fromBody !== "transparent") {
+  if (
+    fromBody &&
+    fromBody !== "rgba(0, 0, 0, 0)" &&
+    fromBody !== "transparent"
+  ) {
     return fromBody;
   }
   return "#ffffff";

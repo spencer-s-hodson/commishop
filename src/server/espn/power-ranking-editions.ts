@@ -3,13 +3,8 @@ import "server-only";
 import { and, asc, eq } from "drizzle-orm";
 
 import { db } from "@/server/db";
-import {
-  powerRankingEdition,
-  powerRankingEntry,
-} from "@/server/db/schema";
-import {
-  fetchEspnBlurbRosterContext,
-} from "@/server/espn/blurb-context";
+import { powerRankingEdition, powerRankingEntry } from "@/server/db/schema";
+import { fetchEspnBlurbRosterContext } from "@/server/espn/blurb-context";
 import {
   fetchEspnDraftDayRankings,
   fetchEspnMatchupPeriodOptions,
@@ -245,7 +240,10 @@ export async function ensurePreseasonEdition(league: ConnectedLeagueRow) {
       rank: index + 1,
       previousRank: null,
       // Use draft-day rank as a stable score (lower rank → higher inverted score).
-      powerScore: Math.max(0, draft.teams.length + 1 - team.draftDayProjectedRank),
+      powerScore: Math.max(
+        0,
+        draft.teams.length + 1 - team.draftDayProjectedRank,
+      ),
       dominance: 0,
       avgScore: 0,
       avgMov: 0,
@@ -402,10 +400,7 @@ export async function runPowerRankingPublishJob(options?: {
         }
       }
     } catch (error) {
-      console.error(
-        `[power-rankings cron] league ${league.id} failed:`,
-        error,
-      );
+      console.error(`[power-rankings cron] league ${league.id} failed:`, error);
     }
   }
 

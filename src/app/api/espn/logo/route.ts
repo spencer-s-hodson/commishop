@@ -45,7 +45,9 @@ export async function GET(request: NextRequest) {
   });
 
   if (!upstream.ok) {
-    return new Response("Failed to load ESPN logo", { status: upstream.status });
+    return new Response("Failed to load ESPN logo", {
+      status: upstream.status,
+    });
   }
 
   const contentType = upstream.headers.get("content-type") ?? "image/jpeg";

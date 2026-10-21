@@ -19,8 +19,7 @@ export async function POST(request: Request) {
   const authHeader = request.headers.get("authorization");
   const url = new URL(request.url);
   const querySecret = url.searchParams.get("secret");
-  const bearer =
-    authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  const bearer = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
   const provided = bearer ?? querySecret;
 
   if (!env.CRON_SECRET || provided !== env.CRON_SECRET) {

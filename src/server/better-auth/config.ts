@@ -10,8 +10,7 @@ import {
 import { db } from "@/server/db";
 
 const googleEnabled =
-  !!env.BETTER_AUTH_GOOGLE_CLIENT_ID &&
-  !!env.BETTER_AUTH_GOOGLE_CLIENT_SECRET;
+  !!env.BETTER_AUTH_GOOGLE_CLIENT_ID && !!env.BETTER_AUTH_GOOGLE_CLIENT_SECRET;
 
 export const auth = betterAuth({
   appName: "Commishop",

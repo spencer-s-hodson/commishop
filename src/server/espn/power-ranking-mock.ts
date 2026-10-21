@@ -109,7 +109,7 @@ export function buildMockWeeklyResults(input: {
       const home = byId.get(homeId)!;
       const away = byId.get(awayId)!;
       let homeScore = scoreFor(home.strength, rand);
-      let awayScore = scoreFor(away.strength, rand);
+      const awayScore = scoreFor(away.strength, rand);
       // Avoid exact ties most of the time for clearer W/L narratives.
       if (homeScore === awayScore) {
         homeScore = Math.round((homeScore + 3.2) * 10) / 10;
@@ -152,7 +152,7 @@ export function buildMockScheduleContext(input: {
       const home = byId.get(homeId)!;
       const away = byId.get(awayId)!;
       let homeScore = scoreFor(home.strength, rand);
-      let awayScore = scoreFor(away.strength, rand);
+      const awayScore = scoreFor(away.strength, rand);
       if (homeScore === awayScore) {
         homeScore = Math.round((homeScore + 3.2) * 10) / 10;
       }

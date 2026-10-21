@@ -95,7 +95,7 @@ export function SignupForm({
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
           <h1 className="font-heading text-2xl font-bold">Create an account</h1>
-          <p className="text-sm text-balance text-muted-foreground">
+          <p className="text-muted-foreground text-sm text-balance">
             Enter your details below to create your account
           </p>
         </div>

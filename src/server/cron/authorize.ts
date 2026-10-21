@@ -9,8 +9,7 @@ export function isAuthorizedCronRequest(
 
 export function cronSecretFromRequest(request: Request): string | null {
   const authHeader = request.headers.get("authorization");
-  const bearer =
-    authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  const bearer = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
   const querySecret = new URL(request.url).searchParams.get("secret");
   return bearer ?? querySecret;
 }

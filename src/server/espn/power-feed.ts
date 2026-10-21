@@ -71,7 +71,11 @@ function collectWeeklyResults(
 
   for (const entry of schedule) {
     const period = entry.matchupPeriodId;
-    if (typeof period !== "number" || period < 1 || period > throughMatchupPeriod) {
+    if (
+      typeof period !== "number" ||
+      period < 1 ||
+      period > throughMatchupPeriod
+    ) {
       continue;
     }
 
@@ -100,10 +104,7 @@ function collectWeeklyResults(
   return results;
 }
 
-function standingsRankForTeam(
-  team: EspnTeam,
-  fallbackIndex: number,
-): number {
+function standingsRankForTeam(team: EspnTeam, fallbackIndex: number): number {
   const sim = team.currentSimulationResults;
   return (
     (typeof team.currentProjectedRank === "number" &&
@@ -218,8 +219,7 @@ export async function fetchEspnPowerRankings(
   const currentMatchupPeriod =
     data.status?.currentMatchupPeriod ?? data.scoringPeriodId ?? 1;
   const throughMatchupPeriod =
-    options?.throughMatchupPeriod ??
-    Math.max(1, currentMatchupPeriod - 1);
+    options?.throughMatchupPeriod ?? Math.max(1, currentMatchupPeriod - 1);
 
   const memberMap = buildMemberMap(data.members ?? []);
   const teamMap = buildTeamMap(data.teams ?? [], memberMap);

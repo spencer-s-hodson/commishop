@@ -17,7 +17,7 @@ function OverviewPageFallback() {
         {Array.from({ length: 3 }).map((_, index) => (
           <div
             key={index}
-            className="flex flex-col gap-3 rounded-xl border border-border/60 p-4"
+            className="border-border/60 flex flex-col gap-3 rounded-xl border p-4"
           >
             <div className="flex items-center justify-between gap-2">
               <Skeleton className="h-4 w-24" />
@@ -36,7 +36,7 @@ function OverviewPageFallback() {
           </div>
         ))}
       </div>
-      <div className="rounded-xl border border-border/60 p-4">
+      <div className="border-border/60 rounded-xl border p-4">
         <Skeleton className="mb-4 h-5 w-28" />
         <div className="flex flex-col gap-3">
           {Array.from({ length: 8 }).map((_, index) => (

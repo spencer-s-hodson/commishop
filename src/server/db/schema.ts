@@ -63,10 +63,10 @@ export const verification = pgTable("verification", {
   value: text("value").notNull(),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").$defaultFn(
-    () => /* @__PURE__ */ new Date()
+    () => /* @__PURE__ */ new Date(),
   ),
   updatedAt: timestamp("updated_at").$defaultFn(
-    () => /* @__PURE__ */ new Date()
+    () => /* @__PURE__ */ new Date(),
   ),
 });
 
@@ -133,7 +133,9 @@ export const powerRankingEdition = pgTable(
     matchupPeriodId: integer("matchup_period_id").notNull().default(0),
     label: text("label").notNull(),
     /** 0 for preseason; N for Match N. */
-    throughMatchupPeriod: integer("through_matchup_period").notNull().default(0),
+    throughMatchupPeriod: integer("through_matchup_period")
+      .notNull()
+      .default(0),
     publishedAt: timestamp("published_at", { withTimezone: true })
       .$defaultFn(() => new Date())
       .notNull(),
@@ -186,13 +188,16 @@ export const powerRankingEntry = pgTable(
   ],
 );
 
-export const fantasyLeagueRelations = relations(fantasyLeague, ({ one, many }) => ({
-  user: one(user, {
-    fields: [fantasyLeague.userId],
-    references: [user.id],
+export const fantasyLeagueRelations = relations(
+  fantasyLeague,
+  ({ one, many }) => ({
+    user: one(user, {
+      fields: [fantasyLeague.userId],
+      references: [user.id],
+    }),
+    powerRankingEditions: many(powerRankingEdition),
   }),
-  powerRankingEditions: many(powerRankingEdition),
-}));
+);
 
 export const powerRankingEditionRelations = relations(
   powerRankingEdition,

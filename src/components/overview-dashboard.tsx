@@ -81,8 +81,8 @@ export function OverviewDashboard() {
         <CardHeader>
           <CardTitle>No league selected</CardTitle>
           <CardDescription>
-            Connect an ESPN league from the sidebar picker to see this week&apos;s
-            matchups and standings.
+            Connect an ESPN league from the sidebar picker to see this
+            week&apos;s matchups and standings.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -132,7 +132,8 @@ export function OverviewDashboard() {
             </h1>
             {viewingCurrent ? (
               <Badge variant="secondary">Current week</Badge>
-            ) : overview.selectedMatchupPeriod < overview.currentMatchupPeriod ? (
+            ) : overview.selectedMatchupPeriod <
+              overview.currentMatchupPeriod ? (
               <Badge variant="outline">Past week</Badge>
             ) : (
               <Badge variant="outline">Upcoming</Badge>
@@ -144,8 +145,8 @@ export function OverviewDashboard() {
           <span className="text-muted-foreground">Matchup week</span>
           <select
             className={cn(
-              "h-8 min-w-44 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none",
-              "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+              "border-input h-8 min-w-44 rounded-lg border bg-transparent px-2.5 text-sm outline-none",
+              "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3",
             )}
             value={overview.selectedMatchupPeriod}
             onChange={(event) => selectWeek(Number(event.target.value))}
@@ -168,10 +169,11 @@ export function OverviewDashboard() {
       <section className="flex flex-col gap-3">
         <div>
           <h2 className="text-sm font-medium">
-            {selectedOption?.shortLabel ?? `Week ${overview.selectedMatchupPeriod}`}{" "}
+            {selectedOption?.shortLabel ??
+              `Week ${overview.selectedMatchupPeriod}`}{" "}
             matchups
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             {viewingCurrent
               ? "Live scores and projected win odds for the current matchup period."
               : selectedOption?.startDate && selectedOption.endDate
@@ -181,7 +183,9 @@ export function OverviewDashboard() {
         </div>
 
         {overviewQuery.isFetching ? (
-          <div className="text-xs text-muted-foreground">Updating matchups…</div>
+          <div className="text-muted-foreground text-xs">
+            Updating matchups…
+          </div>
         ) : null}
 
         {overview.matchups.length === 0 ? (
@@ -199,7 +203,8 @@ export function OverviewDashboard() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {overview.matchups.map((matchup, index) => {
-              const isCategoryLeague = overview.scoringType?.includes("CATEGORY");
+              const isCategoryLeague =
+                overview.scoringType?.includes("CATEGORY");
               const homeWinning =
                 matchup.away != null && matchup.home.score > matchup.away.score;
               const awayWinning =
@@ -223,9 +228,7 @@ export function OverviewDashboard() {
                       ownerName={matchup.home.ownerName}
                       score={formatScore(matchup.home.score)}
                       projectedScore={
-                        isCategoryLeague
-                          ? null
-                          : matchup.home.projectedScore
+                        isCategoryLeague ? null : matchup.home.projectedScore
                       }
                       gamesThisWeek={matchup.home.gamesThisWeek}
                       gamesRemaining={matchup.home.gamesRemaining}
@@ -260,7 +263,7 @@ export function OverviewDashboard() {
                         ) : null}
                       </>
                     ) : (
-                      <div className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+                      <div className="bg-muted/50 text-muted-foreground rounded-lg px-3 py-2 text-sm">
                         Bye week
                       </div>
                     )}
@@ -275,7 +278,7 @@ export function OverviewDashboard() {
       <section className="flex flex-col gap-3">
         <div>
           <h2 className="text-sm font-medium">Standings</h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Ranked 1–{overview.standings.length} from ESPN projections
             {overview.scheduleSettings.playoffTeamCount != null
               ? ` · top ${overview.scheduleSettings.playoffTeamCount} make the playoffs`
@@ -287,7 +290,7 @@ export function OverviewDashboard() {
         <Card size="sm">
           <CardContent className="overflow-x-auto pt-0">
             <table className="w-full min-w-[40rem] text-left text-sm">
-              <thead className="border-b text-muted-foreground">
+              <thead className="text-muted-foreground border-b">
                 <tr>
                   <th className="px-2 py-3 font-medium">#</th>
                   <th className="px-2 py-3 font-medium">Team</th>
@@ -319,9 +322,9 @@ export function OverviewDashboard() {
                             : undefined,
                         )}
                       >
-                        <td className="px-2 py-3 tabular-nums text-muted-foreground">
+                        <td className="text-muted-foreground px-2 py-3 tabular-nums">
                           {team.clinchStatus ? (
-                            <span className="font-medium text-foreground">
+                            <span className="text-foreground font-medium">
                               {team.clinchStatus}-
                             </span>
                           ) : null}
@@ -338,13 +341,13 @@ export function OverviewDashboard() {
                               <div className="truncate font-medium">
                                 {team.name}
                               </div>
-                              <div className="text-xs text-muted-foreground">
+                              <div className="text-muted-foreground text-xs">
                                 {team.abbrev}
                               </div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-2 py-3 text-muted-foreground">
+                        <td className="text-muted-foreground px-2 py-3">
                           {team.ownerName ?? "—"}
                         </td>
                         <td className="px-2 py-3 tabular-nums">
@@ -379,7 +382,7 @@ export function OverviewDashboard() {
                         <tr className="border-b">
                           <td
                             colSpan={9}
-                            className="bg-muted/40 px-2 py-1.5 text-center text-[11px] font-medium uppercase tracking-wide text-muted-foreground"
+                            className="bg-muted/40 text-muted-foreground px-2 py-1.5 text-center text-[11px] font-medium tracking-wide uppercase"
                           >
                             Playoff cutoff
                           </td>
@@ -393,30 +396,30 @@ export function OverviewDashboard() {
           </CardContent>
         </Card>
 
-        <div className="text-xs text-muted-foreground">
-          <p className="mb-1.5 font-medium text-foreground/80">
+        <div className="text-muted-foreground text-xs">
+          <p className="text-foreground/80 mb-1.5 font-medium">
             Standings glossary
           </p>
           <ul className="flex flex-wrap gap-x-4 gap-y-1">
             <li>
-              <span className="font-medium text-foreground">X</span> — clinched
+              <span className="text-foreground font-medium">X</span> — clinched
               playoffs
             </li>
             <li>
-              <span className="font-medium text-foreground">Y</span> — clinched
+              <span className="text-foreground font-medium">Y</span> — clinched
               division
             </li>
             <li>
-              <span className="font-medium text-foreground">Z</span> — clinched
+              <span className="text-foreground font-medium">Z</span> — clinched
               bye
             </li>
             <li>
-              <span className="font-medium text-foreground">*</span> — clinched
+              <span className="text-foreground font-medium">*</span> — clinched
               No. 1 seed
             </li>
             <li>
-              <span className="font-medium text-foreground">E</span> — eliminated
-              from playoff contention
+              <span className="text-foreground font-medium">E</span> —
+              eliminated from playoff contention
             </li>
           </ul>
         </div>
@@ -455,8 +458,7 @@ function formatProbability(value: number) {
 /** Red (dog) → amber (toss-up) → green (favorite). */
 function winProbColor(probability: number) {
   const p = Math.min(1, Math.max(0, probability));
-  const hue =
-    p < 0.5 ? 0 + (p / 0.5) * 42 : 42 + ((p - 0.5) / 0.5) * 100;
+  const hue = p < 0.5 ? 0 + (p / 0.5) * 42 : 42 + ((p - 0.5) / 0.5) * 100;
   return `hsl(${hue} 72% 40%)`;
 }
 
@@ -487,7 +489,9 @@ function formatProjectedLabel(
 ) {
   if (projectedScore == null) return null;
   if ((gamesRemaining ?? 0) <= 0) {
-    return projectedScore > 0 ? `final ${formatScore(projectedScore)}` : "no games left";
+    return projectedScore > 0
+      ? `final ${formatScore(projectedScore)}`
+      : "no games left";
   }
   return `proj ${formatScore(projectedScore)}`;
 }
@@ -523,7 +527,7 @@ function MatchupSide({
   });
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 px-3 py-2">
+    <div className="bg-muted/40 flex items-center justify-between gap-3 rounded-lg px-3 py-2">
       <div className="flex min-w-0 items-center gap-2.5">
         <TeamLogo
           src={logoUrl}
@@ -532,11 +536,11 @@ function MatchupSide({
         />
         <div className="min-w-0">
           <div className="truncate font-medium">{name}</div>
-          <div className="truncate text-xs text-muted-foreground">
+          <div className="text-muted-foreground truncate text-xs">
             {ownerName ?? abbrev}
           </div>
           {volumeLabel ? (
-            <div className="truncate text-[11px] text-muted-foreground">
+            <div className="text-muted-foreground truncate text-[11px]">
               {volumeLabel}
             </div>
           ) : null}
@@ -547,13 +551,13 @@ function MatchupSide({
           className={
             winning
               ? "text-base font-semibold tabular-nums"
-              : "text-base font-semibold tabular-nums text-muted-foreground"
+              : "text-muted-foreground text-base font-semibold tabular-nums"
           }
         >
           {score}
         </div>
         {projectedLabel ? (
-          <div className="text-[11px] tabular-nums text-muted-foreground">
+          <div className="text-muted-foreground text-[11px] tabular-nums">
             {projectedLabel}
           </div>
         ) : null}
@@ -574,8 +578,8 @@ function WinProbabilityBars({
   awayProbability: number;
 }) {
   return (
-    <div className="grid gap-2.5 rounded-lg border border-border/60 bg-muted/20 px-3 py-2.5">
-      <div className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+    <div className="border-border/60 bg-muted/20 grid gap-2.5 rounded-lg border px-3 py-2.5">
+      <div className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
         Win probability
       </div>
       <WinProbabilityRow abbrev={homeAbbrev} probability={homeProbability} />
@@ -598,11 +602,11 @@ function WinProbabilityRow({
     <div className="grid gap-1">
       <div className="flex items-baseline justify-between gap-2">
         <span className="truncate text-xs font-medium">{abbrev}</span>
-        <span className="tabular-nums text-sm font-semibold" style={{ color }}>
+        <span className="text-sm font-semibold tabular-nums" style={{ color }}>
           {formatProbability(probability)}
         </span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-muted">
+      <div className="bg-muted h-2 overflow-hidden rounded-full">
         <div
           className="h-full rounded-full transition-[width,background-color] duration-300"
           style={{ width: `${pctWidth}%`, backgroundColor: color }}
@@ -626,7 +630,7 @@ function OverviewSkeleton() {
         {Array.from({ length: 3 }).map((_, index) => (
           <div
             key={index}
-            className="flex flex-col gap-3 rounded-xl border border-border/60 p-4"
+            className="border-border/60 flex flex-col gap-3 rounded-xl border p-4"
           >
             <div className="flex items-center justify-between gap-2">
               <Skeleton className="h-4 w-24" />
@@ -645,7 +649,7 @@ function OverviewSkeleton() {
           </div>
         ))}
       </div>
-      <div className="rounded-xl border border-border/60 p-4">
+      <div className="border-border/60 rounded-xl border p-4">
         <Skeleton className="mb-4 h-5 w-28" />
         <div className="flex flex-col gap-3">
           {Array.from({ length: 8 }).map((_, index) => (

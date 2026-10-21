@@ -28,12 +28,7 @@ export function CommishopLogo({
       >
         <rect width="32" height="32" rx="7" fill="#15180F" />
         <circle cx="16" cy="16" r="11" fill="#C2F51C" />
-        <g
-          fill="none"
-          stroke="#15180F"
-          strokeWidth="2"
-          strokeLinecap="round"
-        >
+        <g fill="none" stroke="#15180F" strokeWidth="2" strokeLinecap="round">
           <path d="M16 5v22" />
           <path d="M5 16h22" />
           <path d="M8.2 8.2c3.6 4.2 3.6 11.4 0 15.6" />

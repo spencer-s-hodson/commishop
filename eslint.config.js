@@ -62,4 +62,11 @@ export default tseslint.config(
       },
     },
   },
+  {
+    // node:test's describe/it return thenables; awaiting them is not the style we want.
+    files: ["test/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-floating-promises": "off",
+    },
+  },
 );

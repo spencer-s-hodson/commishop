@@ -161,7 +161,7 @@ async function writeMockEdition(input: {
     rosterByTeam,
   });
 
-  let blurbs = await generatePowerRankingBlurbs(request);
+  const blurbs = await generatePowerRankingBlurbs(request);
   // Models sometimes omit teams or miss the sentence window — retry once for gaps.
   if (blurbs.size < snapshot.length) {
     const retry = await generatePowerRankingBlurbs(request);
@@ -274,4 +274,3 @@ export async function seedMockPowerRankingWeeks(options?: {
     editions,
   };
 }
-

@@ -3,11 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 
 import { useActiveLeague } from "@/components/active-league-provider";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,13 +50,7 @@ function escapeRegExp(value: string) {
  * Bold fantasy team names in blurbs. Honors model `**name**` markers and also
  * emphasizes any bare matches from the current edition roster.
  */
-function BlurbText({
-  text,
-  teamNames,
-}: {
-  text: string;
-  teamNames: string[];
-}) {
+function BlurbText({ text, teamNames }: { text: string; teamNames: string[] }) {
   const names = [...new Set(teamNames.filter(Boolean))].sort(
     (a, b) => b.length - a.length,
   );
@@ -71,7 +61,9 @@ function BlurbText({
     working = working.replace(pattern, "**$1**");
   }
 
-  const parts = working.split(/(\*\*[^*]+\*\*)/g).filter((part) => part.length > 0);
+  const parts = working
+    .split(/(\*\*[^*]+\*\*)/g)
+    .filter((part) => part.length > 0);
 
   return (
     <>
@@ -79,7 +71,7 @@ function BlurbText({
         const match = /^\*\*([^*]+)\*\*$/.exec(part);
         if (match) {
           return (
-            <strong key={index} className="font-semibold text-foreground">
+            <strong key={index} className="text-foreground font-semibold">
               {match[1]}
             </strong>
           );
@@ -118,7 +110,7 @@ function DeltaBadge({
   if (delta == null) {
     return (
       <span
-        className="text-[11px] font-medium tabular-nums text-muted-foreground"
+        className="text-muted-foreground text-[11px] font-medium tabular-nums"
         title="No prior edition"
       >
         —
@@ -129,7 +121,7 @@ function DeltaBadge({
   if (delta === 0) {
     return (
       <span
-        className="text-[11px] font-medium tabular-nums text-muted-foreground"
+        className="text-muted-foreground text-[11px] font-medium tabular-nums"
         title="Held steady vs prior edition"
       >
         —
@@ -140,7 +132,7 @@ function DeltaBadge({
   if (delta > 0) {
     return (
       <span
-        className="text-[11px] font-semibold tabular-nums text-emerald-700 dark:text-emerald-400"
+        className="text-[11px] font-semibold text-emerald-700 tabular-nums dark:text-emerald-400"
         title={`Up ${delta} from prior edition`}
       >
         ↑{delta}
@@ -150,7 +142,7 @@ function DeltaBadge({
 
   return (
     <span
-      className="text-[11px] font-semibold tabular-nums text-red-700 dark:text-red-400"
+      className="text-[11px] font-semibold text-red-700 tabular-nums dark:text-red-400"
       title={`Down ${Math.abs(delta)} from prior edition`}
     >
       ↓{Math.abs(delta)}
@@ -224,7 +216,8 @@ export function PowerRankingsDashboard() {
         <CardHeader>
           <CardTitle>No league selected</CardTitle>
           <CardDescription>
-            Connect an ESPN league from the sidebar picker to see power rankings.
+            Connect an ESPN league from the sidebar picker to see power
+            rankings.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -310,9 +303,9 @@ export function PowerRankingsDashboard() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-lg font-semibold">Power Rankings</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-1 text-sm">
             Locked editions for{" "}
-            <span className="font-medium text-foreground">{leagueName}</span>
+            <span className="text-foreground font-medium">{leagueName}</span>
             {" · "}
             published {formatPublishedAt(edition.publishedAt)}
             {isLatest ? " · latest" : ""}
@@ -326,7 +319,7 @@ export function PowerRankingsDashboard() {
 
         <div className="flex flex-wrap items-end gap-2">
           <div className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-muted-foreground">
+            <span className="text-muted-foreground text-xs font-medium">
               Edition
             </span>
             <DropdownMenu>
@@ -348,7 +341,9 @@ export function PowerRankingsDashboard() {
                     key={item.id}
                     onClick={() => setSelectedEditionId(item.id)}
                     className={
-                      item.id === edition.id ? "bg-accent font-medium" : undefined
+                      item.id === edition.id
+                        ? "bg-accent font-medium"
+                        : undefined
                     }
                   >
                     {item.label}
@@ -428,8 +423,8 @@ export function PowerRankingsDashboard() {
             <p>
               This is unique from every later edition: Match rankings use live
               results (80% dominance + 15% average score + 5% average margin of
-              victory) and lock after each matchup period ends. Preseason has
-              no win matrix, scores, or MOV yet.
+              victory) and lock after each matchup period ends. Preseason has no
+              win matrix, scores, or MOV yet.
             </p>
           </AlertDescription>
         </Alert>
@@ -437,16 +432,16 @@ export function PowerRankingsDashboard() {
 
       <div
         ref={exportRef}
-        className="rounded-xl bg-background px-1 py-2 sm:px-2"
+        className="bg-background rounded-xl px-1 py-2 sm:px-2"
       >
-        <div className="mb-4 border-b border-border/70 pb-4">
-          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+        <div className="border-border/70 mb-4 border-b pb-4">
+          <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
             Power Rankings
           </p>
           <h2 className="mt-1 text-xl font-semibold tracking-tight">
             {leagueName}
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-1 text-sm">
             {edition.label}
             {" · "}
             published {formatPublishedAt(edition.publishedAt)}
@@ -459,11 +454,11 @@ export function PowerRankingsDashboard() {
             return (
               <li
                 key={team.teamId}
-                className="border-b border-border/70 py-5 last:border-b-0"
+                className="border-border/70 border-b py-5 last:border-b-0"
               >
                 <div className="flex gap-3 sm:gap-4">
                   <div className="flex w-10 shrink-0 flex-col items-end gap-0.5 pt-0.5 sm:w-12">
-                    <span className="text-2xl font-semibold tabular-nums tracking-tight text-muted-foreground sm:text-3xl">
+                    <span className="text-muted-foreground text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl">
                       {team.rank}
                     </span>
                     <DeltaBadge
@@ -482,7 +477,7 @@ export function PowerRankingsDashboard() {
                         <h3 className="text-base font-bold sm:text-lg">
                           {team.name}
                         </h3>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-muted-foreground text-sm">
                           {team.ownerName ?? team.abbrev}
                           {" · "}
                           {formatRecord(team.wins, team.losses, team.ties)}
@@ -499,14 +494,14 @@ export function PowerRankingsDashboard() {
                     </div>
 
                     {team.blurb ? (
-                      <p className="mt-3 max-w-3xl text-sm leading-relaxed text-foreground/90">
+                      <p className="text-foreground/90 mt-3 max-w-3xl text-sm leading-relaxed">
                         <BlurbText
                           text={team.blurb}
                           teamNames={rankings.map((row) => row.name)}
                         />
                       </p>
                     ) : (
-                      <p className="mt-3 text-sm text-muted-foreground italic">
+                      <p className="text-muted-foreground mt-3 text-sm italic">
                         Write-up coming soon.
                       </p>
                     )}
@@ -518,22 +513,22 @@ export function PowerRankingsDashboard() {
         </ol>
       </div>
 
-      <div className="text-xs text-muted-foreground">
-        <p className="mb-1.5 font-medium text-foreground/80">
+      <div className="text-muted-foreground text-xs">
+        <p className="text-foreground/80 mb-1.5 font-medium">
           How power rankings work
         </p>
         <ul className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:gap-x-4">
           <li>
-            <span className="font-medium text-foreground">Preseason</span> —
+            <span className="text-foreground font-medium">Preseason</span> —
             ESPN draft-day projected roster strength
           </li>
           <li>
-            <span className="font-medium text-foreground">Match editions</span> —
-            80% dominance + 15% avg score + 5% avg MOV, locked after the matchup
-            ends
+            <span className="text-foreground font-medium">Match editions</span>{" "}
+            — 80% dominance + 15% avg score + 5% avg MOV, locked after the
+            matchup ends
           </li>
           <li>
-            <span className="font-medium text-foreground">Δ</span> — vs prior
+            <span className="text-foreground font-medium">Δ</span> — vs prior
             edition (↑ climbing)
           </li>
         </ul>
@@ -559,7 +554,7 @@ function PowerRankingsSkeleton() {
         {Array.from({ length: 6 }).map((_, index) => (
           <div
             key={index}
-            className="flex items-start gap-3 rounded-xl border border-border/60 p-4"
+            className="border-border/60 flex items-start gap-3 rounded-xl border p-4"
           >
             <Skeleton className="size-10 shrink-0 rounded-full" />
             <div className="flex flex-1 flex-col gap-2">

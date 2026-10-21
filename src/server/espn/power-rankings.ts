@@ -1,8 +1,13 @@
 /**
- * ESPN Fantasy Football–style power rankings (espnff / espn-api).
+ * Fantasy basketball power rankings.
  *
- * power = 0.80 * dominance + 0.15 * avgScore + 0.05 * avgMOV
- * where dominance is the row sum of (W + W²) for the league win matrix.
+ * Weighted blend of:
+ * - Record (win%)
+ * - Scoring (average weekly points for — rewards streaming / high PF)
+ * - Strength of schedule (average opponent win%)
+ *
+ * Margin of victory is intentionally unused: fantasy "defense" isn't a thing —
+ * PA / opponent quality is about who you faced, not stopping them.
  */
 
 export type PowerRankingWeeklyResult = {
@@ -10,7 +15,7 @@ export type PowerRankingWeeklyResult = {
   opponentId: number;
   /** Points scored (or category wins in cats leagues). */
   score: number;
-  /** Margin of victory (score − opponent score). */
+  /** Margin of victory (score − opponent score). Kept for schedule context only. */
   mov: number;
 };
 
@@ -22,19 +27,170 @@ export type PowerRankingComputed = {
   teamId: number;
   rank: number;
   powerScore: number;
-  dominance: number;
+  /** Average opponent win% (0–1). Higher = tougher schedule. */
+  sos: number;
   avgScore: number;
+  /** Retained for storage/compat; not used in the power formula. */
   avgMov: number;
   weeksPlayed: number;
+  wins: number;
+  losses: number;
+  ties: number;
 };
 
-/** Square an n×n matrix. */
+const WEIGHT_RECORD = 0.4;
+const WEIGHT_SCORING = 0.35;
+const WEIGHT_SOS = 0.25;
+
+function winPct(wins: number, losses: number, ties: number) {
+  const games = wins + losses + ties;
+  if (games === 0) return 0;
+  return (wins + ties * 0.5) / games;
+}
+
+/** Map value into [0, 1] within the league distribution. Flat → 0.5. */
+export function minMaxNormalize(values: number[], value: number): number {
+  if (values.length === 0) return 0.5;
+  let min = values[0]!;
+  let max = values[0]!;
+  for (const entry of values) {
+    if (entry < min) min = entry;
+    if (entry > max) max = entry;
+  }
+  if (max === min) return 0.5;
+  return (value - min) / (max - min);
+}
+
+function recordFromResults(teamResults: PowerRankingWeeklyResult[]) {
+  let wins = 0;
+  let losses = 0;
+  let ties = 0;
+  for (const result of teamResults) {
+    if (result.mov > 0) wins += 1;
+    else if (result.mov < 0) losses += 1;
+    else ties += 1;
+  }
+  return { wins, losses, ties };
+}
+
+/**
+ * Compute power rankings from weekly H2H results.
+ * Teams with no games still appear (zeros); sort is by powerScore desc.
+ */
+export function computePowerRankings(
+  teams: PowerRankingTeamInput[],
+  results: PowerRankingWeeklyResult[],
+): PowerRankingComputed[] {
+  const teamIds = [...teams.map((team) => team.teamId)].sort((a, b) => a - b);
+
+  const resultsByTeam = new Map<number, PowerRankingWeeklyResult[]>();
+  for (const result of results) {
+    const list = resultsByTeam.get(result.teamId) ?? [];
+    list.push(result);
+    resultsByTeam.set(result.teamId, list);
+  }
+
+  const winPctByTeam = new Map<number, number>();
+  for (const teamId of teamIds) {
+    const teamResults = resultsByTeam.get(teamId) ?? [];
+    const record = recordFromResults(teamResults);
+    winPctByTeam.set(
+      teamId,
+      winPct(record.wins, record.losses, record.ties),
+    );
+  }
+
+  type TeamStats = {
+    teamId: number;
+    wins: number;
+    losses: number;
+    ties: number;
+    winPct: number;
+    avgScore: number;
+    avgMov: number;
+    sos: number;
+    weeksPlayed: number;
+  };
+
+  const stats: TeamStats[] = teamIds.map((teamId) => {
+    const teamResults = resultsByTeam.get(teamId) ?? [];
+    const weeksPlayed = teamResults.length;
+    const record = recordFromResults(teamResults);
+    const avgScore =
+      weeksPlayed > 0
+        ? teamResults.reduce((sum, row) => sum + row.score, 0) / weeksPlayed
+        : 0;
+    const avgMov =
+      weeksPlayed > 0
+        ? teamResults.reduce((sum, row) => sum + row.mov, 0) / weeksPlayed
+        : 0;
+
+    const opponentPcts = teamResults.map(
+      (row) => winPctByTeam.get(row.opponentId) ?? 0,
+    );
+    const sos =
+      opponentPcts.length > 0
+        ? opponentPcts.reduce((sum, value) => sum + value, 0) /
+          opponentPcts.length
+        : 0;
+
+    return {
+      teamId,
+      wins: record.wins,
+      losses: record.losses,
+      ties: record.ties,
+      winPct: winPctByTeam.get(teamId) ?? 0,
+      avgScore,
+      avgMov,
+      sos,
+      weeksPlayed,
+    };
+  });
+
+  const avgScores = stats.map((row) => row.avgScore);
+  const sosValues = stats.map((row) => row.sos);
+
+  const computed: PowerRankingComputed[] = stats.map((row) => {
+    const scoringComponent = minMaxNormalize(avgScores, row.avgScore);
+    const sosComponent = minMaxNormalize(sosValues, row.sos);
+    const powerScore =
+      WEIGHT_RECORD * row.winPct +
+      WEIGHT_SCORING * scoringComponent +
+      WEIGHT_SOS * sosComponent;
+
+    return {
+      teamId: row.teamId,
+      rank: 0,
+      powerScore: Number(powerScore.toFixed(4)),
+      sos: Number(row.sos.toFixed(4)),
+      avgScore: row.avgScore,
+      avgMov: row.avgMov,
+      weeksPlayed: row.weeksPlayed,
+      wins: row.wins,
+      losses: row.losses,
+      ties: row.ties,
+    };
+  });
+
+  computed.sort((a, b) => {
+    if (b.powerScore !== a.powerScore) return b.powerScore - a.powerScore;
+    if (b.avgScore !== a.avgScore) return b.avgScore - a.avgScore;
+    if (b.sos !== a.sos) return b.sos - a.sos;
+    return a.teamId - b.teamId;
+  });
+
+  return computed.map((row, index) => ({
+    ...row,
+    rank: index + 1,
+  }));
+}
+
+/** @deprecated Kept for older tests / imports — win-matrix helpers no longer drive rankings. */
 export function squareMatrix(matrix: number[][]): number[][] {
   const n = matrix.length;
   const result: number[][] = Array.from({ length: n }, () =>
     Array.from({ length: n }, () => 0),
   );
-
   for (let i = 0; i < n; i++) {
     for (let j = 0; j < n; j++) {
       let sum = 0;
@@ -44,39 +200,30 @@ export function squareMatrix(matrix: number[][]): number[][] {
       result[i]![j] = sum;
     }
   }
-
   return result;
 }
 
-/** Element-wise add of two n×n matrices. */
+/** @deprecated */
 export function addMatrix(a: number[][], b: number[][]): number[][] {
   const n = a.length;
   const result: number[][] = Array.from({ length: n }, () =>
     Array.from({ length: n }, () => 0),
   );
-
   for (let i = 0; i < n; i++) {
     for (let j = 0; j < n; j++) {
       result[i]![j] = (a[i]?.[j] ?? 0) + (b[i]?.[j] ?? 0);
     }
   }
-
   return result;
 }
 
-/**
- * Two-step dominance: row sums of (W + W²).
- * Beating a team that beat others is rewarded via W².
- */
+/** @deprecated */
 export function twoStepDominance(winMatrix: number[][]): number[] {
   const combined = addMatrix(squareMatrix(winMatrix), winMatrix);
   return combined.map((row) => row.reduce((sum, value) => sum + value, 0));
 }
 
-/**
- * Build an n×n win matrix ordered by `teamIds`.
- * `winMatrix[i][j]` = times team i beat team j across the given results.
- */
+/** @deprecated */
 export function buildWinMatrix(
   teamIds: number[],
   results: PowerRankingWeeklyResult[],
@@ -86,7 +233,6 @@ export function buildWinMatrix(
   const winMatrix: number[][] = Array.from({ length: n }, () =>
     Array.from({ length: n }, () => 0),
   );
-
   for (const result of results) {
     if (result.mov <= 0) continue;
     const i = indexById.get(result.teamId);
@@ -94,67 +240,5 @@ export function buildWinMatrix(
     if (i == null || j == null) continue;
     winMatrix[i]![j] = (winMatrix[i]![j] ?? 0) + 1;
   }
-
   return winMatrix;
-}
-
-/**
- * Compute ESPN-style power rankings for the given teams and weekly results.
- * Teams with no weeks played still appear (zeros); sort is by powerScore desc.
- */
-export function computePowerRankings(
-  teams: PowerRankingTeamInput[],
-  results: PowerRankingWeeklyResult[],
-): PowerRankingComputed[] {
-  const teamIds = [...teams.map((team) => team.teamId)].sort((a, b) => a - b);
-  const winMatrix = buildWinMatrix(teamIds, results);
-  const dominanceByIndex = twoStepDominance(winMatrix);
-
-  const resultsByTeam = new Map<number, PowerRankingWeeklyResult[]>();
-  for (const result of results) {
-    const list = resultsByTeam.get(result.teamId) ?? [];
-    list.push(result);
-    resultsByTeam.set(result.teamId, list);
-  }
-
-  const computed: PowerRankingComputed[] = teamIds.map((teamId, index) => {
-    const teamResults = resultsByTeam.get(teamId) ?? [];
-    const weeksPlayed = teamResults.length;
-    const avgScore =
-      weeksPlayed > 0
-        ? teamResults.reduce((sum, row) => sum + row.score, 0) / weeksPlayed
-        : 0;
-    const avgMov =
-      weeksPlayed > 0
-        ? teamResults.reduce((sum, row) => sum + row.mov, 0) / weeksPlayed
-        : 0;
-    const dominance = dominanceByIndex[index] ?? 0;
-
-    // Match espnff: int() truncation before weighting.
-    const powerScore =
-      Math.trunc(dominance) * 0.8 +
-      Math.trunc(avgScore) * 0.15 +
-      Math.trunc(avgMov) * 0.05;
-
-    return {
-      teamId,
-      rank: 0,
-      powerScore: Number(powerScore.toFixed(2)),
-      dominance,
-      avgScore,
-      avgMov,
-      weeksPlayed,
-    };
-  });
-
-  computed.sort((a, b) => {
-    if (b.powerScore !== a.powerScore) return b.powerScore - a.powerScore;
-    if (b.avgScore !== a.avgScore) return b.avgScore - a.avgScore;
-    return a.teamId - b.teamId;
-  });
-
-  return computed.map((row, index) => ({
-    ...row,
-    rank: index + 1,
-  }));
 }

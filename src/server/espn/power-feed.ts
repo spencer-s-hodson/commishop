@@ -40,7 +40,8 @@ export type EspnPowerRankingRow = {
   /** Power ranking position (1 = strongest). */
   rank: number;
   powerScore: number;
-  dominance: number;
+  /** Strength of schedule: average opponent win% (0–1). Stored as `dominance` in DB. */
+  sos: number;
   avgScore: number;
   avgMov: number;
   weeksPlayed: number;
@@ -258,7 +259,7 @@ export async function fetchEspnPowerRankings(
         standingsRank: standingsRankForTeam(info.team, index),
         rank: power?.rank ?? teamList.length,
         powerScore: power?.powerScore ?? 0,
-        dominance: power?.dominance ?? 0,
+        sos: power?.sos ?? 0,
         avgScore: power?.avgScore ?? 0,
         avgMov: power?.avgMov ?? 0,
         weeksPlayed: power?.weeksPlayed ?? 0,

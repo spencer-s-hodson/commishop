@@ -339,7 +339,8 @@ export const leagueRouter = createTRPCRouter({
               rank: entry.rank,
               previousRank: entry.previousRank,
               powerScore: entry.powerScore,
-              dominance: entry.dominance,
+              /** Strength of schedule (avg opponent win%). DB column: dominance. */
+              sos: entry.dominance,
               avgScore: entry.avgScore,
               avgMov: entry.avgMov,
               blurb: entry.blurb,

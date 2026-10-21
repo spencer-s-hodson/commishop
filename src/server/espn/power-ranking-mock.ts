@@ -84,10 +84,12 @@ function pairTeams(teamIds: number[], rand: () => number) {
 }
 
 function scoreFor(strength: number, rand: () => number) {
-  // Fantasy basketball weekly totals roughly 400–700 area; bias by strength.
-  const base = 480 + strength * 18;
-  const noise = (rand() - 0.45) * 90;
-  return Math.max(320, Math.round((base + noise) * 10) / 10);
+  // Chaos-friendly local mocks: preseason strength is a light prior, not destiny.
+  // Wide weekly variance + boom/bust weeks let bottom teams climb (and tops fall).
+  const base = 520 + strength * 4;
+  const noise = (rand() - 0.5) * 280;
+  const boom = rand() < 0.22 ? (rand() - 0.35) * 220 : 0;
+  return Math.max(280, Math.round((base + noise + boom) * 10) / 10);
 }
 
 /**
@@ -226,7 +228,8 @@ export type MockMatchSnapshotTeam = {
   ownerName: string | null;
   rank: number;
   powerScore: number;
-  dominance: number;
+  /** Strength of schedule: average opponent win% (0–1). */
+  sos: number;
   avgScore: number;
   avgMov: number;
   wins: number;
@@ -286,7 +289,7 @@ export function computeMockMatchSnapshot(input: {
         ownerName: team.ownerName,
         rank: power?.rank ?? input.teams.length,
         powerScore: power?.powerScore ?? 0,
-        dominance: power?.dominance ?? 0,
+        sos: power?.sos ?? 0,
         avgScore: power?.avgScore ?? 0,
         avgMov: power?.avgMov ?? 0,
         wins: record.wins,

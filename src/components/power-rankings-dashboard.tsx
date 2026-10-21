@@ -421,10 +421,10 @@ export function PowerRankingsDashboard() {
               draft-day rank → higher score).
             </p>
             <p>
-              This is unique from every later edition: Match rankings use live
-              results (80% dominance + 15% average score + 5% average margin of
-              victory) and lock after each matchup period ends. Preseason has no
-              win matrix, scores, or MOV yet.
+              This is unique from every later edition: Match rankings blend
+              record, scoring (points for), and strength of schedule (who
+              you&apos;ve actually faced), and lock after each matchup period
+              ends. Preseason has no results yet.
             </p>
           </AlertDescription>
         </Alert>
@@ -524,8 +524,9 @@ export function PowerRankingsDashboard() {
           </li>
           <li>
             <span className="text-foreground font-medium">Match editions</span>{" "}
-            — 80% dominance + 15% avg score + 5% avg MOV, locked after the
-            matchup ends
+            — 40% win% + 35% points for + 25% strength of schedule (avg
+            opponent win%). Margin of victory doesn&apos;t count. Locked after
+            the matchup ends.
           </li>
           <li>
             <span className="text-foreground font-medium">Δ</span> — vs prior

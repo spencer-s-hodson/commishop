@@ -29,8 +29,6 @@ export {
 
 export type {
   EspnBlurbCompletedMatchup,
-  EspnBlurbPositionGroup,
-  EspnBlurbPositionHighlight,
   EspnBlurbRosterPlayer,
   EspnBlurbScheduleContext,
   EspnBlurbTeamRoster,

@@ -18,13 +18,18 @@ export function CommishopLogo({
   withWordmark = false,
 }: CommishopLogoProps) {
   return (
-    <span className={cn("inline-flex items-center gap-2.5", className)}>
+    <span
+      className={cn(
+        "relative inline-flex shrink-0 items-center gap-2.5",
+        className,
+      )}
+    >
       <svg
         viewBox="0 0 32 32"
         width={size}
         height={size}
         aria-hidden
-        className="shrink-0"
+        className="size-full shrink-0"
       >
         <rect width="32" height="32" rx="7" fill="#15180F" />
         <circle cx="16" cy="16" r="11" fill="#C2F51C" />

@@ -62,6 +62,8 @@ export type EspnTeam = {
           id?: number;
           fullName?: string;
           defaultPositionId?: number;
+          /** Lineup slots this player can fill (0=PG … 4=C, plus flex/UTIL). */
+          eligibleSlots?: number[];
           injuryStatus?: string;
           injured?: boolean;
           stats?: Array<{
@@ -111,6 +113,7 @@ export type EspnRosterEntry = {
       fullName?: string;
       proTeamId?: number;
       defaultPositionId?: number;
+      eligibleSlots?: number[];
       injuryStatus?: string;
       stats?: Array<{
         id?: string;

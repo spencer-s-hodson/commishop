@@ -1,18 +1,13 @@
 import "server-only";
 
+import { FBA_DEFAULT_POSITION } from "@/server/espn/position-strength";
 import {
   buildMemberMap,
   buildTeamMap,
   fetchEspnLeague,
-  fetchPlayerProjections,
   isCategoryScoring,
   sideMatchupScore,
   type EspnCredentials,
-  type EspnLeagueResponse,
-  type EspnRosterEntry,
-  type EspnScheduleEntry,
-  type EspnScheduleSide,
-  type EspnTeam,
 } from "@/server/espn/shared";
 
 export type EspnBlurbCompletedMatchup = {
@@ -154,17 +149,6 @@ export async function fetchEspnBlurbScheduleContext(
   return { recentResultsByTeam, upcomingByTeam };
 }
 
-/** ESPN FBA defaultPositionId → primary position label. */
-const FBA_DEFAULT_POSITION: Record<number, string> = {
-  1: "PG",
-  2: "SG",
-  3: "SF",
-  4: "PF",
-  5: "C",
-};
-
-const POSITION_GROUPS = ["PG", "SG", "SF", "PF", "C"] as const;
-
 function rosterProjectedSeasonTotal(
   stats:
     | Array<{
@@ -231,19 +215,6 @@ export type EspnBlurbRosterPlayer = {
   slot: "starter" | "bench" | "ir";
 };
 
-export type EspnBlurbPositionGroup = {
-  position: string;
-  playerCount: number;
-  projectedPpgTotal: number;
-  leagueRank: number;
-};
-
-export type EspnBlurbPositionHighlight = {
-  position: string;
-  leagueRank: number;
-  projectedPpgTotal: number;
-};
-
 export type EspnBlurbTeamRoster = {
   draftDayProjectedRank: number | null;
   /** Top two projected players (name + projected fantasy PPG). */
@@ -253,15 +224,10 @@ export type EspnBlurbTeamRoster = {
   injuredPlayers: EspnBlurbRosterPlayer[];
   /** Soft statuses (DTD / Q / P) — usually not a big deal. */
   dayToDayPlayers: EspnBlurbRosterPlayer[];
-  positionGroups: EspnBlurbPositionGroup[];
-  /** Best projected-depth position vs the league (e.g. 1st in C). */
-  bestPosition: EspnBlurbPositionHighlight | null;
-  /** Weakest projected-depth position vs the league (e.g. 11th at PG). */
-  worstPosition: EspnBlurbPositionHighlight | null;
 };
 
 /**
- * Roster texture for write-ups: projected scorers, injuries, position strength.
+ * Roster texture for write-ups: projected scorers and injuries.
  */
 export async function fetchEspnBlurbRosterContext(
   leagueId: number,
@@ -326,36 +292,6 @@ export async function fetchEspnBlurbRosterContext(
     });
   }
 
-  // League-wide projected PPG totals by position for relative ranks.
-  const positionTotalsByTeam = new Map<number, Map<string, number>>();
-  for (const [teamId, raw] of rawByTeam) {
-    const totals = new Map<string, number>();
-    for (const position of POSITION_GROUPS) totals.set(position, 0);
-    for (const player of raw.players) {
-      if (
-        !POSITION_GROUPS.includes(
-          player.position as (typeof POSITION_GROUPS)[number],
-        )
-      ) {
-        continue;
-      }
-      totals.set(
-        player.position,
-        (totals.get(player.position) ?? 0) + (player.projectedPpg ?? 0),
-      );
-    }
-    positionTotalsByTeam.set(teamId, totals);
-  }
-
-  const leaguePositionLists = new Map<string, number[]>();
-  for (const position of POSITION_GROUPS) {
-    const values: number[] = [];
-    for (const totals of positionTotalsByTeam.values()) {
-      values.push(totals.get(position) ?? 0);
-    }
-    leaguePositionLists.set(position, values);
-  }
-
   const SERIOUS_INJURY = new Set(["OUT", "IR", "SUSP", "D"]);
   const SOFT_INJURY = new Set(["DTD", "Q", "P"]);
 
@@ -384,75 +320,12 @@ export async function fetchEspnBlurbRosterContext(
       .slice(0, 6)
       .map(strip);
 
-    const totals =
-      positionTotalsByTeam.get(teamId) ?? new Map<string, number>();
-    const counts = new Map<string, number>();
-    for (const position of POSITION_GROUPS) counts.set(position, 0);
-    for (const player of raw.players) {
-      if (
-        !POSITION_GROUPS.includes(
-          player.position as (typeof POSITION_GROUPS)[number],
-        )
-      ) {
-        continue;
-      }
-      counts.set(player.position, (counts.get(player.position) ?? 0) + 1);
-    }
-
-    const positionGroups: EspnBlurbPositionGroup[] = POSITION_GROUPS.map(
-      (position) => {
-        const projectedPpgTotal = Number(
-          (totals.get(position) ?? 0).toFixed(1),
-        );
-        const leagueValues = leaguePositionLists.get(position) ?? [];
-        const sortedDesc = [...leagueValues].sort((a, b) => b - a);
-        const leagueRank = sortedDesc.indexOf(totals.get(position) ?? 0) + 1;
-        return {
-          position,
-          playerCount: counts.get(position) ?? 0,
-          projectedPpgTotal,
-          leagueRank: leagueRank > 0 ? leagueRank : leagueValues.length,
-        };
-      },
-    );
-
-    const withProduction = positionGroups.filter(
-      (group) => group.projectedPpgTotal > 0 || group.playerCount > 0,
-    );
-    const byBestRank = [...withProduction].sort(
-      (a, b) =>
-        a.leagueRank - b.leagueRank ||
-        b.projectedPpgTotal - a.projectedPpgTotal,
-    );
-    const byWorstRank = [...withProduction].sort(
-      (a, b) =>
-        b.leagueRank - a.leagueRank ||
-        a.projectedPpgTotal - b.projectedPpgTotal,
-    );
-    const best = byBestRank[0];
-    const worst = byWorstRank[0];
-
     result.set(teamId, {
       draftDayProjectedRank: raw.draftDayProjectedRank,
       headliners,
       topPlayers,
       injuredPlayers,
       dayToDayPlayers,
-      positionGroups,
-      bestPosition: best
-        ? {
-            position: best.position,
-            leagueRank: best.leagueRank,
-            projectedPpgTotal: best.projectedPpgTotal,
-          }
-        : null,
-      worstPosition: worst
-        ? {
-            position: worst.position,
-            leagueRank: worst.leagueRank,
-            projectedPpgTotal: worst.projectedPpgTotal,
-          }
-        : null,
     });
   }
 

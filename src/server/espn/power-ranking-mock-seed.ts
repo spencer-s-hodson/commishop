@@ -118,7 +118,7 @@ async function writeMockEdition(input: {
       rank: team.rank,
       previousRank: input.previousRanks.get(team.teamId) ?? null,
       powerScore: team.powerScore,
-      dominance: team.dominance,
+      dominance: team.sos,
       avgScore: team.avgScore,
       avgMov: team.avgMov,
       wins: team.wins,
@@ -155,7 +155,7 @@ async function writeMockEdition(input: {
       pointsAgainst: team.pointsAgainst,
       avgScore: team.avgScore,
       avgMov: team.avgMov,
-      dominance: team.dominance,
+      sos: team.sos,
     })),
     schedule,
     rosterByTeam,
@@ -241,7 +241,7 @@ export async function seedMockPowerRankingWeeks(options?: {
     }),
   }));
 
-  const seedKey = `${league.id}:mock-power`;
+  const seedKey = `${league.id}:mock-power:chaos-v1`;
   const editions = [];
 
   let previousRanks = new Map(

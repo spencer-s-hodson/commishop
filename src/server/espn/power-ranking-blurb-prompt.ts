@@ -31,20 +31,6 @@ export const blurbRosterPlayerSchema = z.object({
   slot: z.enum(["starter", "bench", "ir"]),
 });
 
-export const blurbPositionGroupSchema = z.object({
-  position: z.string().min(1),
-  playerCount: z.number().int().nonnegative(),
-  projectedPpgTotal: z.number(),
-  /** 1 = strongest projected depth at this position in the league. */
-  leagueRank: z.number().int().positive(),
-});
-
-export const blurbPositionHighlightSchema = z.object({
-  position: z.string().min(1),
-  leagueRank: z.number().int().positive(),
-  projectedPpgTotal: z.number(),
-});
-
 /**
  * Match-only hint: scoring that outruns draft-day expectation,
  * optionally with serious injuries suggesting streaming was needed.
@@ -64,21 +50,18 @@ export const blurbStreamingSignalSchema = z.object({
 export const blurbRosterSchema = z.object({
   /** ESPN draft-day projected roster strength rank (1 = strongest). */
   draftDayProjectedRank: z.number().int().positive().nullable(),
-  /** Preferred: top two projected players with fantasy PPG. */
+  /** Top two projected players with fantasy PPG. */
   headliners: z.array(blurbRosterPlayerSchema).max(2),
   topPlayers: z.array(blurbRosterPlayerSchema).max(5),
   /** Serious tags only: OUT / IR / SUSP / D. */
   injuredPlayers: z.array(blurbRosterPlayerSchema).max(6),
-  /** Soft tags: DTD / Q / P — usually minor. */
+  /** Soft tags: DTD / Q / P — usually not a big deal. */
   dayToDayPlayers: z.array(blurbRosterPlayerSchema).max(6),
-  positionGroups: z.array(blurbPositionGroupSchema).max(5),
-  bestPosition: blurbPositionHighlightSchema.nullable(),
-  worstPosition: blurbPositionHighlightSchema.nullable(),
 });
 
 /**
  * Per-team payload for the model. Relative ranks are 1 = best for that metric
- * (for points against, 1 = fewest points allowed).
+ * (for points against, 1 = fewest PA — soft schedule / weak opponents faced).
  */
 export const blurbTeamSchema = z.object({
   teamId: z.number().int(),
@@ -102,19 +85,25 @@ export const blurbTeamSchema = z.object({
   pointsAgainst: z.number(),
   pointDifferential: z.number(),
   avgScore: z.number(),
-  avgMov: z.number(),
-  dominance: z.number(),
+  /**
+   * Qualitative strength of schedule for copy — never quote a 0–1 metric.
+   * Derived from sosRank vs the league (tough = top third, soft = bottom third).
+   */
+  scheduleDifficulty: z.enum(["tough", "average", "soft"]),
   /** League-relative ranks (1 = best). */
   pfRank: z.number().int().positive(),
+  /**
+   * 1 = lowest points against (easiest scoring environments faced).
+   * High PA rank number = you've faced louder offenses / harder weeks.
+   */
   paRank: z.number().int().positive(),
   avgScoreRank: z.number().int().positive(),
-  avgMovRank: z.number().int().positive(),
-  dominanceRank: z.number().int().positive(),
+  /** 1 = toughest schedule. Internal ranking aid — do not print as a decimal. */
+  sosRank: z.number().int().positive(),
   /** Deltas vs league averages (positive = above average). */
   pfVsLeagueAvg: z.number(),
   paVsLeagueAvg: z.number(),
   avgScoreVsLeagueAvg: z.number(),
-  avgMovVsLeagueAvg: z.number(),
   /** Roster texture — especially useful in preseason. */
   roster: blurbRosterSchema.nullable(),
   /** Match-only; null in preseason. */
@@ -130,7 +119,6 @@ export const powerRankingBlurbRequestSchema = z.object({
     name: z.string().min(1),
     seasonYear: z.number().int(),
     teamCount: z.number().int().positive(),
-    /** How this league is run — shapes what language is allowed. */
     format: z.literal("redraft_snake"),
     formatNotes: z.string().min(1),
   }),
@@ -139,13 +127,12 @@ export const powerRankingBlurbRequestSchema = z.object({
     kind: z.enum(["preseason", "match"]),
     throughMatchupPeriod: z.number().int().nonnegative(),
   }),
-  leagueBenchmarks: z.object({
-    avgPointsFor: z.number(),
-    avgPointsAgainst: z.number(),
-    avgScore: z.number(),
-    avgMov: z.number(),
-    avgPowerScore: z.number(),
-  }),
+    leagueBenchmarks: z.object({
+      avgPointsFor: z.number(),
+      avgPointsAgainst: z.number(),
+      avgScore: z.number(),
+      avgPowerScore: z.number(),
+    }),
   teams: z.array(blurbTeamSchema).min(1),
 });
 
@@ -179,17 +166,18 @@ export const POWER_RANKING_BLURB_SYSTEM_PROMPT = `You write the weekly power-ran
 
 ## League reality
 - Season-long **redraft**. Snake draft filled every roster. No keepers, no dynasty, no multi-year rebuild arcs.
-- Banned vibes: rebuilding, tanking, contender windows, keeper value, dynasty cores, vague "key matchups," or fake "looked sharp in early games" when there are no results yet.
-- Fantasy-manager vocabulary: projected PPG, position depth, injuries, streaming, PF/PA, average score, margins, H2H results.
+- Fantasy H2H is about **lineups and scoring**, not defense. Do **not** praise or ding teams for "stopping" anyone. High points against means they **faced tough scoring environments / strong opponents**, not that they played bad D.
+- Banned vibes: rebuilding, tanking, contender windows, keeper value, dynasty cores, vague "key matchups," fake early-season vibes with no results, and **position-group rankings** (no "1st in PG depth" talk).
 
 ## Tone (competitive but encouraging)
-- This is a competitive league — be honest and sharp up top.
-- For teams in the bottom half (or clearly trailing), stay **kind and constructive**. Highlight a real bright spot before or alongside the critique.
-- Soften language for lower ranks. Never pile on or imply the season is already over.
+- Competitive league — be honest and sharp up top.
+- Bottom half: stay **kind and constructive**. Find a real bright spot.
+- Soften language for lower ranks. Never pile on or imply the season is over.
 
 ## Names & formatting
 - Fantasy **team names only** (never manager names). Wrap every fantasy team name in markdown bold like \`**Swisters in Law**\`.
-- NBA player names are encouraged from \`roster.headliners\` / \`roster.topPlayers\` / injuries. Do **not** bold NBA player names.
+- Write in **third person only**. Treat each fantasy team as a plural/collective: **they / their / them** ("**Snowtime Lakers** have…", "their schedule has been tough…", "they've streamed well…"). Never "it" / "its" for the team, and never "you" / "your" / "you're".
+- NBA player names are fine from \`roster.headliners\` / injuries. Do **not** bold NBA player names.
 - Use injury labels exactly as provided (DTD, OUT, IR, Q, etc.).
 
 ## Injuries
@@ -197,35 +185,36 @@ export const POWER_RANKING_BLURB_SYSTEM_PROMPT = `You write the weekly power-ran
 - \`dayToDayPlayers\` (DTD / Q / P) are usually minor — don't center a blurb on routine DTD.
 - Never invent games missed.
 
-## Preferred roster angles (use these; name the stats)
-1. **Headliner pair** — \`roster.headliners\`: name the top two projected players and each one's **projected fantasy PPG**. Example tone: "Anchored by Player A (32.1 projected fantasy PPG) and Player B (28.4)…"
-2. **Best vs worst position** — \`roster.bestPosition\` / \`roster.worstPosition\`: say the league rank clearly, e.g. "1st in C projected depth, 11th at PG."
-3. **Streaming / waiver signal (match editions only)** — only when \`streamingSignal\` is present and \`applicable\` is true:
-   - If \`streamingLikelyNeeded\` is true: you may say scoring looks like it required waiver/streaming help (draft-day expectation vs PF rank, plus serious injuries).
-   - If \`outperformingDraft\` is true but streaming wasn't clearly needed: say they're outscoring draft-day expectation — don't invent streaming.
-   - If neither flag is true: do **not** invent a streaming narrative.
-   - Always explain the comparison in plain English when you use it (draft-day rank vs PF rank).
+## What to write about
 
-Do **not** use whole-roster or top-five summed projected-PPG totals.
+### Match editions (results exist)
+Cover the ranking case with these pillars (in plain English — most blurbs should hit record, scoring, and schedule):
+1. **Record** — wins-losses (and ties if any).
+2. **Points for / average score** — high PF means the lineup (and streaming) is cooking; call that out.
+3. **Strength of schedule** — say whether the slate has been tough, average, or soft using \`scheduleDifficulty\` + \`sosRank\`, but **justify it by naming opponents** from \`recentResults\` (and their records/ranks when useful). Example vibe: "a soft run through **Beta** and **Gamma**" or "already seen **Alpha** and **Delta** at full roar." Never invent opponents.
+4. **Points against** — as a schedule signal ("loud weeks from strong opponents"), never as defense.
+5. **Upcoming opponents** — name them when useful.
+6. **Streaming signal** — only when \`streamingSignal.applicable\` and flags support it.
+
+### Preseason (no results yet)
+- Headliners with projected fantasy PPG, draft-day projected rank, serious injuries.
+- Do **not** invent records, SOS, or PF/PA narratives.
 
 ## Creative mandate
-- Vary openings. Preseason: headliners + best/worst positions + draft-day rank + serious injuries.
-- Match: live scoring/results first; weave headliners/positions; use streamingSignal only when flagged.
+- Vary openings. Match: record + scoring + who they've faced first. Preseason: headliners + draft-day + injuries.
 - Keep lower-rank editorial soft.
-
-## Quantitative toolbox
-- Placement / movement.
-- Headliners with projected fantasy PPG (named).
-- Best vs worst position ranks (named).
-- Match: PF/PA, avg score, margins, results, upcoming opponents; streamingSignal when flagged.
-- Never invent players, injuries, scores, or transactions.
 
 ## Hard bans
 - No fantasy manager names.
+- No second person ("you", "your", "you're", "you've").
+- No "it" / "its" for the fantasy team, roster, or lineup — use **they / their / them** ("their schedule has been tough", "they have streamed well", "ahead of their draft-day projection"). Prefer "their lineup" over "a roster … its".
 - No "power score" / internal formula labels.
+- **Never print strength-of-schedule as a decimal, percentage, or 0–1 metric** (no "SOS of 0.64", "64% SOS", "sosRank #2" as a number dump). Talk about tough/soft schedule and **name the teams**.
+- No position-group / "1st at center" depth rankings.
 - No whole-roster or top-five projected-PPG sums.
 - No streaming claims in preseason or when streamingSignal doesn't support them.
 - No bullets, headers, emojis, hashtags.
+- No "defense" / "held them to" framing for PA.
 
 ## Length & output
 - 4–5 sentences (prefer 5). About 90–140 words.
@@ -242,8 +231,6 @@ export function managerFirstNames(ownerName: string | null | undefined) {
     .map((part) => {
       const tokens = part.trim().split(/\s+/).filter(Boolean);
       if (tokens.length === 0) return null;
-      // Single-owner "Last, First" is uncommon here (ESPN prefers First Last),
-      // but if a part is one token after a prior split, keep it.
       return tokens[0] ?? null;
     })
     .filter((name): name is string => Boolean(name));
@@ -286,6 +273,18 @@ function winPct(wins: number, losses: number, ties: number) {
   return (wins + ties * 0.5) / games;
 }
 
+/** Map sosRank (1 = toughest) into plain-English schedule difficulty. */
+function scheduleDifficultyFromRank(
+  sosRank: number,
+  teamCount: number,
+): "tough" | "average" | "soft" {
+  if (teamCount <= 1) return "average";
+  const third = Math.max(1, Math.ceil(teamCount / 3));
+  if (sosRank <= third) return "tough";
+  if (sosRank > teamCount - third) return "soft";
+  return "average";
+}
+
 export type BlurbEntrySeed = {
   teamId: number;
   rank: number;
@@ -301,7 +300,8 @@ export type BlurbEntrySeed = {
   pointsAgainst: number;
   avgScore: number;
   avgMov: number;
-  dominance: number;
+  /** Strength of schedule (average opponent win%). */
+  sos: number;
 };
 
 export type BlurbScheduleContext = {
@@ -331,14 +331,13 @@ export function buildPowerRankingBlurbRequest(input: {
   const pfValues = entries.map((entry) => entry.pointsFor);
   const paValues = entries.map((entry) => entry.pointsAgainst);
   const avgScoreValues = entries.map((entry) => entry.avgScore);
-  const avgMovValues = entries.map((entry) => entry.avgMov);
-  const dominanceValues = entries.map((entry) => entry.dominance);
+  const sosValues = entries.map((entry) => entry.sos);
   const powerValues = entries.map((entry) => entry.powerScore);
 
   const leagueAvgPf = average(pfValues);
   const leagueAvgPa = average(paValues);
   const leagueAvgScore = average(avgScoreValues);
-  const leagueAvgMov = average(avgMovValues);
+  const teamCount = entries.length;
 
   const gamesPlayed = (entry: BlurbEntrySeed) =>
     entry.wins + entry.losses + entry.ties;
@@ -349,6 +348,7 @@ export function buildPowerRankingBlurbRequest(input: {
     const firstNames = managerFirstNames(entry.ownerName);
     const roster = input.rosterByTeam?.get(entry.teamId) ?? null;
     const pfRank = rankDescending(pfValues, entry.pointsFor);
+    const sosRank = rankDescending(sosValues, entry.sos);
 
     let streamingSignal: BlurbTeamInput["streamingSignal"] = null;
     if (input.kind === "match" && gamesPlayed(entry) > 0) {
@@ -396,17 +396,14 @@ export function buildPowerRankingBlurbRequest(input: {
       pointsAgainst: round1(entry.pointsAgainst),
       pointDifferential: round1(entry.pointsFor - entry.pointsAgainst),
       avgScore: round1(entry.avgScore),
-      avgMov: round1(entry.avgMov),
-      dominance: round1(entry.dominance),
+      scheduleDifficulty: scheduleDifficultyFromRank(sosRank, teamCount),
       pfRank,
       paRank: rankAscending(paValues, entry.pointsAgainst),
       avgScoreRank: rankDescending(avgScoreValues, entry.avgScore),
-      avgMovRank: rankDescending(avgMovValues, entry.avgMov),
-      dominanceRank: rankDescending(dominanceValues, entry.dominance),
+      sosRank,
       pfVsLeagueAvg: round1(entry.pointsFor - leagueAvgPf),
       paVsLeagueAvg: round1(entry.pointsAgainst - leagueAvgPa),
       avgScoreVsLeagueAvg: round1(entry.avgScore - leagueAvgScore),
-      avgMovVsLeagueAvg: round1(entry.avgMov - leagueAvgMov),
       roster,
       streamingSignal,
       recentResults:
@@ -421,10 +418,10 @@ export function buildPowerRankingBlurbRequest(input: {
     league: {
       name: input.leagueName,
       seasonYear: input.seasonYear,
-      teamCount: entries.length,
+      teamCount,
       format: "redraft_snake",
       formatNotes:
-        "Season-long redraft. Snake draft filled every roster. No keepers and no dynasty — do not write rebuild/contender-window language.",
+        "Season-long redraft. Snake draft filled every roster. No keepers and no dynasty — do not write rebuild/contender-window language. Fantasy scoring is offense/lineups, not defense.",
     },
     edition: {
       label: input.editionLabel,
@@ -435,7 +432,6 @@ export function buildPowerRankingBlurbRequest(input: {
       avgPointsFor: round1(leagueAvgPf),
       avgPointsAgainst: round1(leagueAvgPa),
       avgScore: round1(leagueAvgScore),
-      avgMov: round1(leagueAvgMov),
       avgPowerScore: round2(average(powerValues)),
     },
     teams,

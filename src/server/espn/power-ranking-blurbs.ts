@@ -51,7 +51,7 @@ export async function generatePowerRankingBlurbs(
         role: "user",
         content: [
           "Write power-ranking blurbs for every team in this JSON payload.",
-          "Honor the system instructions (redraft; fantasy team names only; headliner pair with projected fantasy PPG; best vs worst position ranks; match-only streamingSignal when flagged; go light on DTD; 4–5 meaty sentences).",
+          "Honor the system instructions (redraft; fantasy team names only; third person they/their/them for each team — never you/your or it/its; record + PF + strength of schedule explained via named opponents — never quote SOS decimals; PA as schedule signal; headliners for preseason; match-only streamingSignal when flagged; no position-group ranks; no defense framing; go light on DTD; 4–5 meaty sentences).",
           "Return JSON only.",
           "",
           JSON.stringify(request),

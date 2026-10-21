@@ -54,7 +54,7 @@ describe("buildPowerRankingBlurbRequest", () => {
           pointsAgainst: 180,
           avgScore: 110,
           avgMov: 20,
-          dominance: 4,
+          sos: 0.55,
         },
         {
           teamId: 2,
@@ -71,7 +71,7 @@ describe("buildPowerRankingBlurbRequest", () => {
           pointsAgainst: 220,
           avgScore: 90,
           avgMov: -20,
-          dominance: 0,
+          sos: 0.4,
         },
       ],
       schedule: {
@@ -124,5 +124,11 @@ describe("buildPowerRankingBlurbRequest", () => {
     assert.equal(request.teams[0]?.streamingSignal?.applicable, true);
     assert.equal(request.teams[0]?.recentResults.length, 1);
     assert.equal(request.teams[0]?.upcomingOpponents.length, 1);
+    assert.equal(request.teams[0]?.scheduleDifficulty, "tough");
+    assert.equal(request.teams[1]?.scheduleDifficulty, "soft");
+    assert.equal(
+      (request.teams[0] as { sos?: number }).sos,
+      undefined,
+    );
   });
 });

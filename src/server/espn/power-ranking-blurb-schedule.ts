@@ -117,7 +117,7 @@ async function resolveMockBlurbSchedule(input: {
         strengthByTeamId.get(entry.teamId) ?? teamCount + 1 - entry.rank,
     })),
     throughWeek: input.throughMatchupPeriod,
-    seedKey: `${input.league.id}:mock-power`,
+    seedKey: `${input.league.id}:mock-power:chaos-v1`,
     rankByTeamId: input.rankByTeamId,
   });
 }

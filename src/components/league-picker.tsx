@@ -58,8 +58,8 @@ export function LeaguePicker() {
                 />
               }
             >
-              <CommishopLogo size={32} />
-              <div className="grid flex-1 text-left text-sm leading-tight">
+              <CommishopLogo size={32} className="size-8 shrink-0" />
+              <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                 <span className="truncate font-medium">
                   {activeLeague?.name ?? "Select a league"}
                 </span>
@@ -69,7 +69,7 @@ export function LeaguePicker() {
                     : "Connect an ESPN league"}
                 </span>
               </div>
-              <ChevronsUpDownIcon className="ml-auto" />
+              <ChevronsUpDownIcon className="ml-auto group-data-[collapsible=icon]:hidden" />
             </DropdownMenuTrigger>
             <DropdownMenuContent
               className="w-72"

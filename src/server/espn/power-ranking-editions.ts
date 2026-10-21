@@ -108,8 +108,12 @@ async function previousEditionRanks(fantasyLeagueId: string) {
 
 /**
  * Fill missing blurbs for an edition (idempotent). Safe to call on read / cron.
+ * Pass `{ force: true }` to regenerate blurbs for every team in the edition.
  */
-export async function ensureEditionBlurbs(editionId: string) {
+export async function ensureEditionBlurbs(
+  editionId: string,
+  options?: { force?: boolean },
+) {
   const edition = await db.query.powerRankingEdition.findFirst({
     where: eq(powerRankingEdition.id, editionId),
     with: {
@@ -121,9 +125,11 @@ export async function ensureEditionBlurbs(editionId: string) {
   });
   if (!edition) return;
 
-  const missing = edition.entries.filter(
-    (entry) => !entry.blurb || entry.blurb.trim().length === 0,
-  );
+  const missing = options?.force
+    ? edition.entries
+    : edition.entries.filter(
+        (entry) => !entry.blurb || entry.blurb.trim().length === 0,
+      );
   if (missing.length === 0) return;
 
   const kind = edition.kind === "match" ? "match" : "preseason";
@@ -178,7 +184,7 @@ export async function ensureEditionBlurbs(editionId: string) {
         pointsAgainst: entry.pointsAgainst,
         avgScore: entry.avgScore,
         avgMov: entry.avgMov,
-        dominance: entry.dominance,
+        sos: entry.dominance,
       })),
       schedule,
       rosterByTeam,
@@ -315,7 +321,7 @@ export async function publishMatchEdition(
       rank: team.rank,
       previousRank: priorRanks.get(team.teamId) ?? null,
       powerScore: team.powerScore,
-      dominance: team.dominance,
+      dominance: team.sos,
       avgScore: team.avgScore,
       avgMov: team.avgMov,
       wins: team.wins,

@@ -26,7 +26,7 @@ User → Better Auth session
 1. **Auth & invite gate** — Better Auth (email/password + optional Google). Signup can be limited with `AUTH_ALLOWED_EMAILS`.
 2. **League connection** — Credentials live in Postgres; live ESPN data is fetched on demand through a server-side adapter (shared fetch, overview, power feed, blurb context).
 3. **Overview** — Combines league views, matchup projections, win-probability modeling, and NBA scoreboard progress for in-progress games.
-4. **Power rankings** — Ranks use an ESPN FF–style formula (`dominance` + average score + margin of victory). Editions are **immutable snapshots**, not live recomputes. Preseason is created lazily; Match N editions are published by cron.
+4. **Power rankings** — Match editions blend record, points for, and strength of schedule (opponent win%). Editions are **immutable snapshots**, not live recomputes. Preseason is created lazily from draft-day ranks; Match N editions are published by cron.
 5. **Blurbs** — Structured OpenAI prompts with Zod-validated JSON responses; stored on each ranking entry and backfilled idempotently if missing.
 
 Domain terms (edition, blurb, publish job, etc.) are defined in [`GLOSSARY.md`](./GLOSSARY.md).

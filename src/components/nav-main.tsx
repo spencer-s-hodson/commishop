@@ -9,6 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 export function NavMain({
@@ -21,6 +22,7 @@ export function NavMain({
   }[];
 }) {
   const pathname = usePathname();
+  const { isMobile, setOpenMobile } = useSidebar();
 
   return (
     <SidebarGroup>
@@ -36,6 +38,10 @@ export function NavMain({
                 isActive={isActive}
                 tooltip={item.title}
                 render={<Link href={item.url} />}
+                className="group-data-[collapsible=icon]:[&>span]:hidden"
+                onClick={() => {
+                  if (isMobile) setOpenMobile(false);
+                }}
               >
                 {item.icon}
                 <span>{item.title}</span>

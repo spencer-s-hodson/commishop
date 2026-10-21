@@ -1,0 +1,62 @@
+
+> commishop@0.1.0 dev
+> next dev
+
+▲ Next.js 16.4.2 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.68.51:3000
+- Environments: .env
+✓ Ready in 281ms
+✓ Running next.config.js took 44ms
+
+✓ Generated AGENTS.md for AI agents. Set `agentRules: false` in next.config to disable.
+○ Compiling /login ...
+ GET /login 200 in 302ms (next.js: 159ms, application-code: 143ms)
+ GET /login 200 in 26ms (next.js: 0.7ms, application-code: 25ms)
+ GET /login 200 in 43ms (next.js: 3ms, application-code: 39ms)
+ POST /api/auth/sign-in/social 200 in 580ms (next.js: 531ms, application-code: 49ms)
+ GET /api/auth/callback/google?state=Hy9867r5DvClIwyFUBVB8DhlqVNSeuWn&iss=https://accounts.google.com&code=4/0AXlqoi7wmByOh9jurNcW-fTfzxCWu5qGT8bJSxyYnJjl0Ew5dYGQJURBA9TpC4IbTZa_2Q&scope=email+profile+https://www.googleapis.com/auth/userinfo.email+openid+https://www.googleapis.com/auth/userinfo.profile&authuser=0&prompt=none 302 in 1175ms (next.js: 4ms, application-code: 1171ms)
+ GET /overview 200 in 97ms (next.js: 15ms, application-code: 82ms)
+[TRPC] league.list took 347ms to execute
+ GET /api/trpc/league.list?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%2C%22v%22%3A1%7D%7D%7D 200 in 900ms (next.js: 527ms, application-code: 373ms)
+[TRPC] league.overview took 1317ms to execute
+ GET /api/trpc/league.overview?batch=1&input=%7B%220%22%3A%7B%22json%22%3A%7B%22leagueId%22%3A%22a31d378e-6d51-4dbe-8ebc-a383c94ff2b6%22%2C%22matchupPeriodId%22%3Anull%7D%2C%22meta%22%3A%7B%22values%22%3A%7B%22matchupPeriodId%22%3A%5B%22undefined%22%5D%7D%2C%22v%22%3A1%7D%7D%7D 200 in 1335ms (next.js: 3ms, application-code: 1332ms)
+ GET /overview?week=1 200 in 19ms (next.js: 1.7ms, application-code: 17ms)
+[TRPC] league.overview took 882ms to execute
+ GET /api/trpc/league.overview?batch=1&input=%7B%220%22%3A%7B%22json%22%3A%7B%22leagueId%22%3A%22a31d378e-6d51-4dbe-8ebc-a383c94ff2b6%22%2C%22matchupPeriodId%22%3A1%7D%7D%7D 200 in 896ms (next.js: 3ms, application-code: 893ms)
+ GET /power-rankings 200 in 13ms (next.js: 3ms, application-code: 10ms)
+[TRPC] league.powerRankings.editions took 357ms to execute
+ GET /api/trpc/league.powerRankings.editions?batch=1&input=%7B%220%22%3A%7B%22json%22%3A%7B%22leagueId%22%3A%22a31d378e-6d51-4dbe-8ebc-a383c94ff2b6%22%7D%7D%7D 200 in 374ms (next.js: 5ms, application-code: 368ms)
+[TRPC] league.powerRankings.byEdition took 424ms to execute
+ GET /api/trpc/league.powerRankings.byEdition?batch=1&input=%7B%220%22%3A%7B%22json%22%3A%7B%22leagueId%22%3A%22a31d378e-6d51-4dbe-8ebc-a383c94ff2b6%22%2C%22editionId%22%3A%2258a6c6bd-1883-4c98-9a83-814e475be427%22%7D%7D%7D 200 in 432ms (next.js: 0.5ms, application-code: 432ms)
+[TRPC] league.list took 144ms to execute
+[TRPC] league.powerRankings.editions took 314ms to execute
+[TRPC] league.powerRankings.byEdition took 391ms to execute
+ GET /api/trpc/league.list,league.powerRankings.editions,league.powerRankings.byEdition?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%2C%22v%22%3A1%7D%7D%2C%221%22%3A%7B%22json%22%3A%7B%22leagueId%22%3A%22a31d378e-6d51-4dbe-8ebc-a383c94ff2b6%22%7D%7D%2C%222%22%3A%7B%22json%22%3A%7B%22leagueId%22%3A%22a31d378e-6d51-4dbe-8ebc-a383c94ff2b6%22%2C%22editionId%22%3A%2258a6c6bd-1883-4c98-9a83-814e475be427%22%7D%7D%7D 200 in 408ms (next.js: 5ms, application-code: 403ms)
+✓ Compiled in 58ms
+✓ Compiled in 32ms
+ GET /power-rankings 200 in 82ms (next.js: 0.7ms, application-code: 81ms)
+[TRPC] league.list took 136ms to execute
+ GET /api/trpc/league.list?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%2C%22v%22%3A1%7D%7D%7D 200 in 146ms (next.js: 1.8ms, application-code: 144ms)
+[TRPC] league.powerRankings.editions took 442ms to execute
+ GET /api/trpc/league.powerRankings.editions?batch=1&input=%7B%220%22%3A%7B%22json%22%3A%7B%22leagueId%22%3A%22a31d378e-6d51-4dbe-8ebc-a383c94ff2b6%22%7D%7D%7D 200 in 453ms (next.js: 0.7ms, application-code: 453ms)
+[TRPC] league.powerRankings.byEdition took 216ms to execute
+ GET /api/trpc/league.powerRankings.byEdition?batch=1&input=%7B%220%22%3A%7B%22json%22%3A%7B%22leagueId%22%3A%22a31d378e-6d51-4dbe-8ebc-a383c94ff2b6%22%2C%22editionId%22%3A%2258a6c6bd-1883-4c98-9a83-814e475be427%22%7D%7D%7D 200 in 230ms (next.js: 3ms, application-code: 227ms)
+[TRPC] league.powerRankings.editions took 119ms to execute
+[TRPC] league.list took 451ms to execute
+[TRPC] league.powerRankings.byEdition took 503ms to execute
+ GET /api/trpc/league.list,league.powerRankings.editions,league.powerRankings.byEdition?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%2C%22v%22%3A1%7D%7D%2C%221%22%3A%7B%22json%22%3A%7B%22leagueId%22%3A%22a31d378e-6d51-4dbe-8ebc-a383c94ff2b6%22%7D%7D%2C%222%22%3A%7B%22json%22%3A%7B%22leagueId%22%3A%22a31d378e-6d51-4dbe-8ebc-a383c94ff2b6%22%2C%22editionId%22%3A%2258a6c6bd-1883-4c98-9a83-814e475be427%22%7D%7D%7D 200 in 517ms (next.js: 4ms, application-code: 513ms)
+✓ Compiled in 23ms
+[TRPC] league.powerRankings.editions took 166ms to execute
+[TRPC] league.list took 391ms to execute
+[TRPC] league.powerRankings.byEdition took 446ms to execute
+ GET /api/trpc/league.list,league.powerRankings.editions,league.powerRankings.byEdition?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%2C%22v%22%3A1%7D%7D%2C%221%22%3A%7B%22json%22%3A%7B%22leagueId%22%3A%22a31d378e-6d51-4dbe-8ebc-a383c94ff2b6%22%7D%7D%2C%222%22%3A%7B%22json%22%3A%7B%22leagueId%22%3A%22a31d378e-6d51-4dbe-8ebc-a383c94ff2b6%22%2C%22editionId%22%3A%2258a6c6bd-1883-4c98-9a83-814e475be427%22%7D%7D%7D 200 in 460ms (next.js: 3ms, application-code: 456ms)
+ GET /overview 200 in 21ms (next.js: 1.9ms, application-code: 19ms)
+[TRPC] league.overview took 3135ms to execute
+ GET /api/trpc/league.overview?batch=1&input=%7B%220%22%3A%7B%22json%22%3A%7B%22leagueId%22%3A%22a31d378e-6d51-4dbe-8ebc-a383c94ff2b6%22%2C%22matchupPeriodId%22%3Anull%7D%2C%22meta%22%3A%7B%22values%22%3A%7B%22matchupPeriodId%22%3A%5B%22undefined%22%5D%7D%2C%22v%22%3A1%7D%7D%7D 200 in 3.1s (next.js: 1.9ms, application-code: 3.1s)
+ GET /overview?week=1 200 in 18ms (next.js: 0.9ms, application-code: 17ms)
+[TRPC] league.overview took 897ms to execute
+ GET /api/trpc/league.overview?batch=1&input=%7B%220%22%3A%7B%22json%22%3A%7B%22leagueId%22%3A%22a31d378e-6d51-4dbe-8ebc-a383c94ff2b6%22%2C%22matchupPeriodId%22%3A1%7D%7D%7D 200 in 909ms (next.js: 2ms, application-code: 907ms)
+[TRPC] league.list took 202ms to execute
+[TRPC] league.overview took 1201ms to execute
+ GET /api/trpc/league.list,league.overview?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%2C%22v%22%3A1%7D%7D%2C%221%22%3A%7B%22json%22%3A%7B%22leagueId%22%3A%22a31d378e-6d51-4dbe-8ebc-a383c94ff2b6%22%2C%22matchupPeriodId%22%3A1%7D%7D%7D 200 in 1218ms (next.js: 5ms, application-code: 1214ms)

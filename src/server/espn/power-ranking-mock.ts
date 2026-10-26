@@ -117,12 +117,14 @@ export function buildMockWeeklyResults(input: {
         homeScore = Math.round((homeScore + 3.2) * 10) / 10;
       }
       results.push({
+        period: week,
         teamId: homeId,
         opponentId: awayId,
         score: homeScore,
         mov: homeScore - awayScore,
       });
       results.push({
+        period: week,
         teamId: awayId,
         opponentId: homeId,
         score: awayScore,

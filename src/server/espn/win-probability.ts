@@ -42,6 +42,8 @@ export function espnStyleWinProbability(input: {
 
   if (sd <= 0) {
     if (margin === 0) return 0.5;
+    // No games left → the result is final, so don't hedge at 98/2.
+    if (!input.minutesOrGamesRemaining) return margin > 0 ? 1 : 0;
     return margin > 0 ? MAX_PROB : MIN_PROB;
   }
 

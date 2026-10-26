@@ -29,7 +29,7 @@ export function CommishopLogo({
         width={size}
         height={size}
         aria-hidden
-        className="size-full shrink-0"
+        className="block shrink-0"
       >
         <rect width="32" height="32" rx="7" fill="#15180F" />
         <circle cx="16" cy="16" r="11" fill="#C2F51C" />
@@ -45,7 +45,7 @@ export function CommishopLogo({
           Commishop
         </span>
       ) : null}
-      <span className="sr-only">Commishop</span>
+      {!withWordmark ? <span className="sr-only">Commishop</span> : null}
     </span>
   );
 }

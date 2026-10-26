@@ -169,6 +169,75 @@ function TeamLogo({
   );
 }
 
+export type PowerRankingRow = {
+  teamId: number;
+  rank: number;
+  previousRank: number | null;
+  name: string;
+  abbrev: string;
+  logoUrl: string | null;
+  ownerName: string | null;
+  wins: number;
+  losses: number;
+  ties: number;
+  pointsFor: number;
+  blurb: string | null;
+};
+
+export function PowerRankingEntry({
+  team,
+  teamNames,
+}: {
+  team: PowerRankingRow;
+  teamNames: string[];
+}) {
+  return (
+    <div className="flex gap-3 sm:gap-4">
+      <div className="flex w-10 shrink-0 flex-col items-end gap-0.5 pt-0.5 sm:w-12">
+        <span className="text-muted-foreground text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl">
+          {team.rank}
+        </span>
+        <DeltaBadge previousRank={team.previousRank} rank={team.rank} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start gap-3">
+          <TeamLogo
+            src={team.logoUrl}
+            alt={team.name}
+            fallback={team.abbrev.slice(0, 2).toUpperCase()}
+          />
+          <div className="min-w-0 flex-1">
+            <h3 className="text-base font-bold sm:text-lg">{team.name}</h3>
+            <p className="text-muted-foreground text-sm">
+              {team.ownerName ?? team.abbrev}
+              {" · "}
+              {formatRecord(team.wins, team.losses, team.ties)}
+              {" · "}
+              {formatScore(team.pointsFor)} PF
+              {team.previousRank != null ? (
+                <>
+                  {" · "}
+                  was #{team.previousRank}
+                </>
+              ) : null}
+            </p>
+          </div>
+        </div>
+
+        {team.blurb ? (
+          <p className="text-foreground/90 mt-3 max-w-3xl text-sm leading-relaxed">
+            <BlurbText text={team.blurb} teamNames={teamNames} />
+          </p>
+        ) : (
+          <p className="text-muted-foreground mt-3 text-sm italic">
+            Write-up coming soon.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function PowerRankingsDashboard() {
   const { activeLeague, activeLeagueId, leaguesLoading } = useActiveLeague();
   const [selectedEditionId, setSelectedEditionId] = useState<string | null>(
@@ -450,66 +519,17 @@ export function PowerRankingsDashboard() {
         </div>
 
         <ol className="flex flex-col gap-0">
-          {rankings.map((team) => {
-            return (
-              <li
-                key={team.teamId}
-                className="border-border/70 border-b py-5 last:border-b-0"
-              >
-                <div className="flex gap-3 sm:gap-4">
-                  <div className="flex w-10 shrink-0 flex-col items-end gap-0.5 pt-0.5 sm:w-12">
-                    <span className="text-muted-foreground text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl">
-                      {team.rank}
-                    </span>
-                    <DeltaBadge
-                      previousRank={team.previousRank}
-                      rank={team.rank}
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start gap-3">
-                      <TeamLogo
-                        src={team.logoUrl}
-                        alt={team.name}
-                        fallback={team.abbrev.slice(0, 2).toUpperCase()}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-base font-bold sm:text-lg">
-                          {team.name}
-                        </h3>
-                        <p className="text-muted-foreground text-sm">
-                          {team.ownerName ?? team.abbrev}
-                          {" · "}
-                          {formatRecord(team.wins, team.losses, team.ties)}
-                          {" · "}
-                          {formatScore(team.pointsFor)} PF
-                          {team.previousRank != null ? (
-                            <>
-                              {" · "}
-                              was #{team.previousRank}
-                            </>
-                          ) : null}
-                        </p>
-                      </div>
-                    </div>
-
-                    {team.blurb ? (
-                      <p className="text-foreground/90 mt-3 max-w-3xl text-sm leading-relaxed">
-                        <BlurbText
-                          text={team.blurb}
-                          teamNames={rankings.map((row) => row.name)}
-                        />
-                      </p>
-                    ) : (
-                      <p className="text-muted-foreground mt-3 text-sm italic">
-                        Write-up coming soon.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </li>
-            );
-          })}
+          {rankings.map((team) => (
+            <li
+              key={team.teamId}
+              className="border-border/70 border-b py-5 last:border-b-0"
+            >
+              <PowerRankingEntry
+                team={team}
+                teamNames={rankings.map((row) => row.name)}
+              />
+            </li>
+          ))}
         </ol>
       </div>
 
@@ -524,9 +544,9 @@ export function PowerRankingsDashboard() {
           </li>
           <li>
             <span className="text-foreground font-medium">Match editions</span>{" "}
-            — 40% win% + 35% points for + 25% strength of schedule (avg
-            opponent win%). Margin of victory doesn&apos;t count. Locked after
-            the matchup ends.
+            — 40% win% + 35% points for + 25% strength of schedule (avg opponent
+            win%). Margin of victory doesn&apos;t count. Locked after the
+            matchup ends.
           </li>
           <li>
             <span className="text-foreground font-medium">Δ</span> — vs prior

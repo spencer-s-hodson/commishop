@@ -62,4 +62,27 @@ describe("espnStyleWinProbability", () => {
       0.02,
     );
   });
+
+  it("returns 100/0 once no games remain", () => {
+    assert.equal(
+      espnStyleWinProbability({
+        teamProjected: 110,
+        teamCeiling: 110,
+        opponentProjected: 100,
+        opponentCeiling: 100,
+        minutesOrGamesRemaining: false,
+      }),
+      1,
+    );
+    assert.equal(
+      espnStyleWinProbability({
+        teamProjected: 90,
+        teamCeiling: 90,
+        opponentProjected: 100,
+        opponentCeiling: 100,
+        minutesOrGamesRemaining: false,
+      }),
+      0,
+    );
+  });
 });

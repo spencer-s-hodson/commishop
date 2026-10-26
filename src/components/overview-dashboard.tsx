@@ -228,75 +228,16 @@ export function OverviewDashboard() {
           </Card>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {overview.matchups.map((matchup, index) => {
-              const isCategoryLeague =
-                overview.scoringType?.includes("CATEGORY");
-              const homeWinning =
-                matchup.away != null && matchup.home.score > matchup.away.score;
-              const awayWinning =
-                matchup.away != null && matchup.away.score > matchup.home.score;
-              const homeProb = matchup.homeWinProbability;
-              const awayProb = matchup.awayWinProbability;
-
-              return (
-                <Card key={`${matchup.home.teamId}-${index}`}>
-                  <CardHeader className="border-b">
-                    <CardTitle>Matchup {index + 1}</CardTitle>
-                    <CardDescription>
-                      Period {matchup.matchupPeriodId}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="grid gap-3">
-                    <MatchupSide
-                      abbrev={matchup.home.abbrev}
-                      logoUrl={matchup.home.logoUrl}
-                      name={matchup.home.name}
-                      ownerName={matchup.home.ownerName}
-                      score={formatScore(matchup.home.score)}
-                      projectedScore={
-                        isCategoryLeague ? null : matchup.home.projectedScore
-                      }
-                      gamesThisWeek={matchup.home.gamesThisWeek}
-                      gamesRemaining={matchup.home.gamesRemaining}
-                      playersRemaining={matchup.home.playersRemaining}
-                      winning={homeWinning}
-                    />
-                    {matchup.away ? (
-                      <>
-                        <MatchupSide
-                          abbrev={matchup.away.abbrev}
-                          logoUrl={matchup.away.logoUrl}
-                          name={matchup.away.name}
-                          ownerName={matchup.away.ownerName}
-                          score={formatScore(matchup.away.score)}
-                          projectedScore={
-                            isCategoryLeague
-                              ? null
-                              : matchup.away.projectedScore
-                          }
-                          gamesThisWeek={matchup.away.gamesThisWeek}
-                          gamesRemaining={matchup.away.gamesRemaining}
-                          playersRemaining={matchup.away.playersRemaining}
-                          winning={awayWinning}
-                        />
-                        {homeProb != null && awayProb != null ? (
-                          <WinProbabilityBars
-                            homeAbbrev={matchup.home.abbrev}
-                            awayAbbrev={matchup.away.abbrev}
-                            homeProbability={homeProb}
-                            awayProbability={awayProb}
-                          />
-                        ) : null}
-                      </>
-                    ) : (
-                      <div className="bg-muted/50 text-muted-foreground rounded-lg px-3 py-2 text-sm">
-                        Bye week
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
+            {overview.matchups.map((matchup, index) => (
+              <MatchupCard
+                key={`${matchup.home.teamId}-${index}`}
+                matchup={matchup}
+                index={index}
+                isCategoryLeague={Boolean(
+                  overview.scoringType?.includes("CATEGORY"),
+                )}
+              />
+            ))}
           </div>
         )}
       </section>
@@ -522,6 +463,97 @@ function formatProjectedLabel(
   return `proj ${formatScore(projectedScore)}`;
 }
 
+type MatchupCardTeam = {
+  teamId: number;
+  abbrev: string;
+  logoUrl: string | null;
+  name: string;
+  ownerName: string | null;
+  score: number;
+  projectedScore?: number | null;
+  gamesThisWeek?: number | null;
+  gamesRemaining?: number | null;
+  playersRemaining?: number | null;
+};
+
+export type OverviewMatchupCardData = {
+  matchupPeriodId: number;
+  home: MatchupCardTeam;
+  away: MatchupCardTeam | null;
+  homeWinProbability?: number | null;
+  awayWinProbability?: number | null;
+};
+
+export function MatchupCard({
+  matchup,
+  index,
+  isCategoryLeague,
+}: {
+  matchup: OverviewMatchupCardData;
+  index: number;
+  isCategoryLeague: boolean;
+}) {
+  const homeWinning =
+    matchup.away != null && matchup.home.score > matchup.away.score;
+  const awayWinning =
+    matchup.away != null && matchup.away.score > matchup.home.score;
+  const homeProb = matchup.homeWinProbability;
+  const awayProb = matchup.awayWinProbability;
+
+  return (
+    <Card>
+      <CardHeader className="border-b">
+        <CardTitle>Matchup {index + 1}</CardTitle>
+        <CardDescription>Period {matchup.matchupPeriodId}</CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-3">
+        <MatchupSide
+          abbrev={matchup.home.abbrev}
+          logoUrl={matchup.home.logoUrl}
+          name={matchup.home.name}
+          ownerName={matchup.home.ownerName}
+          score={formatScore(matchup.home.score)}
+          projectedScore={isCategoryLeague ? null : matchup.home.projectedScore}
+          gamesThisWeek={matchup.home.gamesThisWeek}
+          gamesRemaining={matchup.home.gamesRemaining}
+          playersRemaining={matchup.home.playersRemaining}
+          winning={homeWinning}
+        />
+        {matchup.away ? (
+          <>
+            <MatchupSide
+              abbrev={matchup.away.abbrev}
+              logoUrl={matchup.away.logoUrl}
+              name={matchup.away.name}
+              ownerName={matchup.away.ownerName}
+              score={formatScore(matchup.away.score)}
+              projectedScore={
+                isCategoryLeague ? null : matchup.away.projectedScore
+              }
+              gamesThisWeek={matchup.away.gamesThisWeek}
+              gamesRemaining={matchup.away.gamesRemaining}
+              playersRemaining={matchup.away.playersRemaining}
+              winning={awayWinning}
+            />
+            {homeProb != null && awayProb != null ? (
+              <WinProbabilityBars
+                homeAbbrev={matchup.home.abbrev}
+                awayAbbrev={matchup.away.abbrev}
+                homeProbability={homeProb}
+                awayProbability={awayProb}
+              />
+            ) : null}
+          </>
+        ) : (
+          <div className="bg-muted/50 text-muted-foreground rounded-lg px-3 py-2 text-sm">
+            Bye week
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function MatchupSide({
   abbrev,
   logoUrl,
@@ -604,7 +636,10 @@ function WinProbabilityBars({
   awayProbability: number;
 }) {
   return (
-    <div className="border-border/60 bg-muted/20 grid gap-2.5 rounded-lg border px-3 py-2.5">
+    <div
+      data-slot="win-probability"
+      className="border-border/60 bg-muted/20 grid gap-2.5 rounded-lg border px-3 py-2.5"
+    >
       <div className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
         Win probability
       </div>

@@ -20,6 +20,7 @@ import {
   getPowerRankingEditionById,
   listPowerRankingEditions,
 } from "@/server/espn/power-ranking-editions";
+import { fetchEspnTradeSnapshot } from "@/server/espn/trade-feed";
 
 const connectInput = z.object({
   espnLeagueId: z.coerce.number().int().positive(),
@@ -213,6 +214,50 @@ export const leagueRouter = createTRPCRouter({
             error instanceof Error
               ? error.message
               : "Failed to load ESPN league overview.",
+        });
+      }
+    }),
+
+  /** Valued rosters for every team; trades are evaluated client-side. */
+  tradeSnapshot: protectedProcedure
+    .input(z.object({ leagueId: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      const league = await ctx.db.query.fantasyLeague.findFirst({
+        where: and(
+          eq(fantasyLeague.id, input.leagueId),
+          eq(fantasyLeague.userId, ctx.session.user.id),
+        ),
+      });
+
+      if (!league) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "League not found.",
+        });
+      }
+
+      try {
+        const snapshot = await fetchEspnTradeSnapshot(
+          league.espnLeagueId,
+          league.seasonYear,
+          { espnS2: league.espnS2, swid: league.swid },
+        );
+
+        return {
+          connectedLeagueId: league.id,
+          ...snapshot,
+          teams: snapshot.teams.map((team) => ({
+            ...team,
+            logoUrl: toDisplayLogoUrl(team.logoUrl, league.id),
+          })),
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to load ESPN rosters for the trade analyzer.",
         });
       }
     }),

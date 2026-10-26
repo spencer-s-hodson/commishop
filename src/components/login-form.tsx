@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/field";
 import { GoogleIcon } from "@/components/google-icon";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/password-input";
 import { authClient } from "@/server/better-auth/client";
 
 export function LoginForm({
@@ -75,44 +76,14 @@ export function LoginForm({
       {...props}
     >
       <FieldGroup>
-        <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="font-heading text-2xl font-bold">
-            Login to your account
+        <div className="flex flex-col items-center gap-2 text-center">
+          <h1 className="font-heading text-2xl font-extrabold tracking-tight">
+            Welcome back
           </h1>
           <p className="text-muted-foreground text-sm text-balance">
-            Enter your email below to login to your account
+            Sign in to pick up where you left off.
           </p>
         </div>
-        <Field>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="m@example.com"
-            autoComplete="email"
-            required
-            disabled={pending}
-          />
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="password">Password</FieldLabel>
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            disabled={pending}
-          />
-        </Field>
-        {error ? <FieldError>{error}</FieldError> : null}
-        <Field>
-          <Button type="submit" disabled={pending} className="w-full">
-            {pending ? "Signing in…" : "Login"}
-          </Button>
-        </Field>
-        <FieldSeparator>Or continue with</FieldSeparator>
         <Field>
           <Button
             variant="outline"
@@ -122,7 +93,36 @@ export function LoginForm({
             onClick={onGoogleSignIn}
           >
             <GoogleIcon />
-            Login with Google
+            Continue with Google
+          </Button>
+        </Field>
+        <FieldSeparator>Or continue with email</FieldSeparator>
+        <Field>
+          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            autoComplete="email"
+            required
+            disabled={pending}
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="password">Password</FieldLabel>
+          <PasswordInput
+            id="password"
+            name="password"
+            autoComplete="current-password"
+            required
+            disabled={pending}
+          />
+        </Field>
+        {error ? <FieldError>{error}</FieldError> : null}
+        <Field>
+          <Button type="submit" disabled={pending} className="w-full">
+            {pending ? "Signing in…" : "Sign in"}
           </Button>
           <FieldDescription className="text-center">
             Don&apos;t have an account?{" "}

@@ -1,21 +1,21 @@
 import * as React from "react";
 
 const MOBILE_BREAKPOINT = 768;
+const MOBILE_QUERY = `(max-width: ${MOBILE_BREAKPOINT - 1}px)`;
 
+/**
+ * SSR-safe mobile detection. During SSR and hydration, always returns `false`
+ * so the desktop sidebar markup matches; after hydration it syncs to the
+ * real viewport (avoids Sheet vs desktop tree mismatches).
+ */
 export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(
-    undefined,
+  return React.useSyncExternalStore(
+    (onStoreChange) => {
+      const mql = window.matchMedia(MOBILE_QUERY);
+      mql.addEventListener("change", onStoreChange);
+      return () => mql.removeEventListener("change", onStoreChange);
+    },
+    () => window.matchMedia(MOBILE_QUERY).matches,
+    () => false,
   );
-
-  React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-    const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    };
-    mql.addEventListener("change", onChange);
-    onChange();
-    return () => mql.removeEventListener("change", onChange);
-  }, []);
-
-  return !!isMobile;
 }

@@ -21,7 +21,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Commishop",
   description:
-    "Your fantasy basketball commissioner desk — power rankings, matchups, and league intel.",
+    "Fantasy basketball tools for ESPN leagues — matchups, power rankings, and trade analysis.",
   icons: [
     { rel: "icon", url: "/brand/commishop-mark.svg", type: "image/svg+xml" },
     { rel: "apple-touch-icon", url: "/brand/commishop-mark.svg" },
@@ -35,8 +35,9 @@ export default function RootLayout({
     <html
       lang="en"
       className={cn("font-sans", archivo.variable, jetbrainsMono.variable)}
+      suppressHydrationWarning
     >
-      <body>
+      <body suppressHydrationWarning>
         <TRPCReactProvider>
           <TooltipProvider>{children}</TooltipProvider>
         </TRPCReactProvider>

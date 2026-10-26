@@ -2,15 +2,19 @@
  * Fantasy basketball power rankings.
  *
  * Weighted blend of:
- * - Record (win%)
+ * - Record (H2H win%)
+ * - All-play win% (each week, record vs every other team's score — strips
+ *   matchup luck, e.g. a 2nd-best score that lost to the 1st)
  * - Scoring (average weekly points for — rewards streaming / high PF)
- * - Strength of schedule (average opponent win%)
+ * - Strength of schedule (avg of opponent win% and opponent all-play win%)
  *
  * Margin of victory is intentionally unused: fantasy "defense" isn't a thing —
  * PA / opponent quality is about who you faced, not stopping them.
  */
 
 export type PowerRankingWeeklyResult = {
+  /** Matchup period (week) — groups scores for all-play. */
+  period: number;
   teamId: number;
   opponentId: number;
   /** Points scored (or category wins in cats leagues). */
@@ -27,7 +31,7 @@ export type PowerRankingComputed = {
   teamId: number;
   rank: number;
   powerScore: number;
-  /** Average opponent win% (0–1). Higher = tougher schedule. */
+  /** Avg of opponent win% and opponent all-play win% (0–1). Higher = tougher schedule. */
   sos: number;
   avgScore: number;
   /** Retained for storage/compat; not used in the power formula. */
@@ -38,9 +42,10 @@ export type PowerRankingComputed = {
   ties: number;
 };
 
-const WEIGHT_RECORD = 0.4;
-const WEIGHT_SCORING = 0.35;
-const WEIGHT_SOS = 0.25;
+const WEIGHT_RECORD = 0.3;
+const WEIGHT_ALL_PLAY = 0.2;
+const WEIGHT_SCORING = 0.3;
+const WEIGHT_SOS = 0.2;
 
 function winPct(wins: number, losses: number, ties: number) {
   const games = wins + losses + ties;
@@ -74,6 +79,47 @@ function recordFromResults(teamResults: PowerRankingWeeklyResult[]) {
 }
 
 /**
+ * All-play win% per team: each week, a team "plays" every other team that
+ * reported a score that week (ties count half), averaged across weeks.
+ */
+export function allPlayWinPctByTeam(
+  results: PowerRankingWeeklyResult[],
+): Map<number, number> {
+  const scoresByPeriod = new Map<number, number[]>();
+  for (const result of results) {
+    const list = scoresByPeriod.get(result.period) ?? [];
+    list.push(result.score);
+    scoresByPeriod.set(result.period, list);
+  }
+
+  const weeklyPctsByTeam = new Map<number, number[]>();
+  for (const result of results) {
+    const weekScores = scoresByPeriod.get(result.period) ?? [];
+    const opponents = weekScores.length - 1;
+    if (opponents <= 0) continue;
+    let wins = 0;
+    for (const score of weekScores) {
+      if (score < result.score) wins += 1;
+      else if (score === result.score) wins += 0.5;
+    }
+    // Own score counted as a tie above — remove it.
+    wins -= 0.5;
+    const list = weeklyPctsByTeam.get(result.teamId) ?? [];
+    list.push(wins / opponents);
+    weeklyPctsByTeam.set(result.teamId, list);
+  }
+
+  const allPlay = new Map<number, number>();
+  for (const [teamId, pcts] of weeklyPctsByTeam) {
+    allPlay.set(
+      teamId,
+      pcts.reduce((sum, value) => sum + value, 0) / pcts.length,
+    );
+  }
+  return allPlay;
+}
+
+/**
  * Compute power rankings from weekly H2H results.
  * Teams with no games still appear (zeros); sort is by powerScore desc.
  */
@@ -94,11 +140,10 @@ export function computePowerRankings(
   for (const teamId of teamIds) {
     const teamResults = resultsByTeam.get(teamId) ?? [];
     const record = recordFromResults(teamResults);
-    winPctByTeam.set(
-      teamId,
-      winPct(record.wins, record.losses, record.ties),
-    );
+    winPctByTeam.set(teamId, winPct(record.wins, record.losses, record.ties));
   }
+
+  const allPlayByTeam = allPlayWinPctByTeam(results);
 
   type TeamStats = {
     teamId: number;
@@ -106,6 +151,7 @@ export function computePowerRankings(
     losses: number;
     ties: number;
     winPct: number;
+    allPlayPct: number;
     avgScore: number;
     avgMov: number;
     sos: number;
@@ -126,7 +172,10 @@ export function computePowerRankings(
         : 0;
 
     const opponentPcts = teamResults.map(
-      (row) => winPctByTeam.get(row.opponentId) ?? 0,
+      (row) =>
+        ((winPctByTeam.get(row.opponentId) ?? 0) +
+          (allPlayByTeam.get(row.opponentId) ?? 0)) /
+        2,
     );
     const sos =
       opponentPcts.length > 0
@@ -140,6 +189,7 @@ export function computePowerRankings(
       losses: record.losses,
       ties: record.ties,
       winPct: winPctByTeam.get(teamId) ?? 0,
+      allPlayPct: allPlayByTeam.get(teamId) ?? 0,
       avgScore,
       avgMov,
       sos,
@@ -155,6 +205,7 @@ export function computePowerRankings(
     const sosComponent = minMaxNormalize(sosValues, row.sos);
     const powerScore =
       WEIGHT_RECORD * row.winPct +
+      WEIGHT_ALL_PLAY * row.allPlayPct +
       WEIGHT_SCORING * scoringComponent +
       WEIGHT_SOS * sosComponent;
 

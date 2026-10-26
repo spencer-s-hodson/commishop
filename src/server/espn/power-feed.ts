@@ -87,12 +87,14 @@ function collectWeeklyResults(
     if (homeScore == null || awayScore == null) continue;
 
     results.push({
+      period,
       teamId: homeId,
       opponentId: awayId,
       score: homeScore,
       mov: homeScore - awayScore,
     });
     results.push({
+      period,
       teamId: awayId,
       opponentId: homeId,
       score: awayScore,

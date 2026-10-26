@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronsUpDownIcon, LogOutIcon } from "lucide-react";
 
@@ -35,12 +36,18 @@ function UserAvatar({
 }: {
   user: { name: string; email: string; avatar: string };
 }) {
+  // Defer remote images until after mount so SSR fallback matches hydration.
+  const [canLoadImage, setCanLoadImage] = useState(false);
+  useEffect(() => {
+    setCanLoadImage(true);
+  }, []);
+
   return (
     <Avatar>
-      {user.avatar ? <AvatarImage src={user.avatar} alt={user.name} /> : null}
-      <AvatarFallback suppressHydrationWarning>
-        {initials(user.name || "U")}
-      </AvatarFallback>
+      {canLoadImage && user.avatar ? (
+        <AvatarImage src={user.avatar} alt={user.name} />
+      ) : null}
+      <AvatarFallback>{initials(user.name || "U")}</AvatarFallback>
     </Avatar>
   );
 }

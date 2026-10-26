@@ -1,7 +1,11 @@
 "use client";
 
 import type * as React from "react";
-import { LayoutDashboardIcon, ListOrderedIcon } from "lucide-react";
+import {
+  ArrowLeftRightIcon,
+  LayoutDashboardIcon,
+  ListOrderedIcon,
+} from "lucide-react";
 
 import { LeaguePicker } from "@/components/league-picker";
 import { NavMain } from "@/components/nav-main";
@@ -24,6 +28,11 @@ const navMain = [
     title: "Power Rankings",
     url: "/power-rankings",
     icon: <ListOrderedIcon />,
+  },
+  {
+    title: "Trade Analyzer",
+    url: "/trade-analyzer",
+    icon: <ArrowLeftRightIcon />,
   },
 ];
 

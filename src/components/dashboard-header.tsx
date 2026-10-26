@@ -16,6 +16,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 const titles: Record<string, string> = {
   "/overview": "Overview",
   "/power-rankings": "Power Rankings",
+  "/trade-analyzer": "Trade Analyzer",
 };
 
 export function DashboardHeader() {

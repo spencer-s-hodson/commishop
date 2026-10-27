@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronsUpDownIcon, LogOutIcon } from "lucide-react";
 
@@ -31,16 +31,20 @@ function initials(name: string) {
     .toUpperCase();
 }
 
+// Mount flag never changes, so there's nothing to subscribe to.
+const subscribeNever = () => () => undefined;
+
 function UserAvatar({
   user,
 }: {
   user: { name: string; email: string; avatar: string };
 }) {
   // Defer remote images until after mount so SSR fallback matches hydration.
-  const [canLoadImage, setCanLoadImage] = useState(false);
-  useEffect(() => {
-    setCanLoadImage(true);
-  }, []);
+  const canLoadImage = useSyncExternalStore(
+    subscribeNever,
+    () => true,
+    () => false,
+  );
 
   return (
     <Avatar>

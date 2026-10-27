@@ -1,24 +1,4 @@
-import { toPng } from "html-to-image";
-import { jsPDF } from "jspdf";
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 60);
-}
-
-export function buildExportFilename(
-  leagueName: string,
-  editionLabel: string,
-  extension: "png" | "pdf",
-) {
-  const base = ["power-rankings", slugify(leagueName), slugify(editionLabel)]
-    .filter(Boolean)
-    .join("-");
-  return `${base || "power-rankings"}.${extension}`;
-}
+import { toBlob } from "html-to-image";
 
 function resolveBackgroundColor(node: HTMLElement) {
   const fromNode = getComputedStyle(node).backgroundColor;
@@ -66,7 +46,7 @@ function withAvatarFallbacksOnly<T>(node: HTMLElement, run: () => Promise<T>) {
   });
 }
 
-async function captureElementPng(node: HTMLElement) {
+async function captureElementBlob(node: HTMLElement) {
   const options = {
     cacheBust: true,
     pixelRatio: 2,
@@ -74,82 +54,58 @@ async function captureElementPng(node: HTMLElement) {
   };
 
   try {
-    return await toPng(node, options);
+    return await toBlob(node, options);
   } catch {
     // ESPN (and other) logos often lack CORS headers; fall back to initials.
-    return withAvatarFallbacksOnly(node, () => toPng(node, options));
+    return withAvatarFallbacksOnly(node, () => toBlob(node, options));
   }
 }
 
-function triggerDownload(href: string, filename: string) {
-  const link = document.createElement("a");
-  link.download = filename;
-  link.href = href;
-  link.click();
-}
-
-export async function downloadElementAsPng(
-  node: HTMLElement,
-  filename: string,
-) {
-  const dataUrl = await captureElementPng(node);
-  triggerDownload(dataUrl, filename);
-}
-
-export async function downloadElementAsPdf(
-  node: HTMLElement,
-  filename: string,
-) {
-  const dataUrl = await captureElementPng(node);
-  const pdf = new jsPDF({
-    orientation: "portrait",
-    unit: "pt",
-    format: "letter",
-  });
-
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  const margin = 24;
-  const contentWidth = pageWidth - margin * 2;
-
-  const image = new Image();
-  image.src = dataUrl;
-  await new Promise<void>((resolve, reject) => {
-    image.onload = () => resolve();
-    image.onerror = () => reject(new Error("Failed to load export image."));
-  });
-
-  const contentHeight = (image.height * contentWidth) / image.width;
-  let heightLeft = contentHeight;
-  let offsetY = margin;
-
-  pdf.addImage(
-    dataUrl,
-    "PNG",
-    margin,
-    offsetY,
-    contentWidth,
-    contentHeight,
-    undefined,
-    "FAST",
-  );
-  heightLeft -= pageHeight - margin;
-
-  while (heightLeft > 0) {
-    offsetY = margin - (contentHeight - heightLeft);
-    pdf.addPage();
-    pdf.addImage(
-      dataUrl,
-      "PNG",
-      margin,
-      offsetY,
-      contentWidth,
-      contentHeight,
-      undefined,
-      "FAST",
+function assertClipboardImageSupport() {
+  if (
+    typeof navigator === "undefined" ||
+    !navigator.clipboard?.write ||
+    typeof ClipboardItem === "undefined"
+  ) {
+    throw new Error(
+      "Copy as image isn’t supported in this browser. Try Chrome, Safari, or Edge on HTTPS.",
     );
-    heightLeft -= pageHeight;
   }
+}
 
-  pdf.save(filename);
+/**
+ * Capture `node` as a PNG and write it to the system clipboard.
+ *
+ * Passes a Promise into ClipboardItem first so Safari/iOS can keep the
+ * user-gesture context while html-to-image runs; falls back to a resolved
+ * Blob for browsers that reject Promise values.
+ */
+export async function copyElementAsPng(node: HTMLElement) {
+  assertClipboardImageSupport();
+
+  const blobPromise = captureElementBlob(node).then((blob) => {
+    if (!blob) {
+      throw new Error("Failed to capture image.");
+    }
+    return blob;
+  });
+
+  try {
+    await navigator.clipboard.write([
+      new ClipboardItem({ "image/png": blobPromise }),
+    ]);
+    return;
+  } catch (error) {
+    // Chrome / some desktop browsers want a resolved Blob, not a Promise.
+    const blob = await blobPromise;
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItem({ "image/png": blob }),
+      ]);
+    } catch {
+      throw error instanceof Error
+        ? error
+        : new Error("Couldn’t copy image to the clipboard.");
+    }
+  }
 }

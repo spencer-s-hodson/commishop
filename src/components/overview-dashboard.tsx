@@ -139,10 +139,17 @@ export function OverviewDashboard() {
               {overview.name}
             </h1>
             {viewingCurrent ? (
-              <Badge variant="secondary">Current week</Badge>
+              <Badge className="border-transparent bg-brand text-black">
+                Current week
+              </Badge>
             ) : overview.selectedMatchupPeriod <
               overview.currentMatchupPeriod ? (
-              <Badge variant="outline">Past week</Badge>
+              <Badge
+                variant="secondary"
+                className="bg-muted text-muted-foreground"
+              >
+                Past week
+              </Badge>
             ) : (
               <Badge variant="outline">Upcoming</Badge>
             )}

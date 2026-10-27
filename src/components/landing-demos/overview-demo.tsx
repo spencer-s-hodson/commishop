@@ -83,7 +83,9 @@ export function OverviewDemo() {
           <h1 className="text-xl font-semibold tracking-tight">
             {DEMO_LEAGUE_NAME}
           </h1>
-          <Badge variant="secondary">Current week</Badge>
+          <Badge className="border-transparent bg-brand text-black">
+            Current week
+          </Badge>
         </div>
         <div className="flex flex-col gap-1">
           <span className="text-muted-foreground text-xs font-medium">

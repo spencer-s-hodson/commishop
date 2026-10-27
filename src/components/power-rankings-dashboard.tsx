@@ -19,16 +19,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { copyElementAsPng } from "@/lib/export-element";
 import {
-  buildExportFilename,
-  downloadElementAsPdf,
-  downloadElementAsPng,
-} from "@/lib/export-element";
-import {
+  CheckIcon,
   ChevronDownIcon,
-  DownloadIcon,
-  FileImageIcon,
-  FileTextIcon,
+  ClipboardCopyIcon,
   TriangleAlertIcon,
 } from "lucide-react";
 import { api } from "@/trpc/react";
@@ -243,7 +238,9 @@ export function PowerRankingsDashboard() {
   const [selectedEditionId, setSelectedEditionId] = useState<string | null>(
     null,
   );
-  const [exporting, setExporting] = useState<"png" | "pdf" | null>(null);
+  const [copyState, setCopyState] = useState<"idle" | "copying" | "copied">(
+    "idle",
+  );
   const [exportError, setExportError] = useState<string | null>(null);
   const exportRef = useRef<HTMLDivElement>(null);
 
@@ -342,28 +339,26 @@ export function PowerRankingsDashboard() {
   const isPreseason = edition.kind === "preseason";
   const isLatest = edition.id === editionsQuery.data?.latestEditionId;
 
-  async function handleExport(format: "png" | "pdf") {
+  async function handleCopyAsImage() {
     const node = exportRef.current;
-    if (!node || exporting) return;
+    if (!node || copyState === "copying") return;
 
     setExportError(null);
-    setExporting(format);
+    setCopyState("copying");
 
     try {
-      const filename = buildExportFilename(leagueName, edition.label, format);
-      if (format === "png") {
-        await downloadElementAsPng(node, filename);
-      } else {
-        await downloadElementAsPdf(node, filename);
-      }
+      await copyElementAsPng(node);
+      setCopyState("copied");
+      window.setTimeout(() => {
+        setCopyState((current) => (current === "copied" ? "idle" : current));
+      }, 2000);
     } catch (error) {
+      setCopyState("idle");
       setExportError(
         error instanceof Error
           ? error.message
-          : "Export failed. Try again in a moment.",
+          : "Copy failed. Try again in a moment.",
       );
-    } finally {
-      setExporting(null);
     }
   }
 
@@ -424,48 +419,24 @@ export function PowerRankingsDashboard() {
 
           <div className="flex flex-col gap-1">
             <span className="invisible text-xs font-medium" aria-hidden>
-              Export
+              Copy
             </span>
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    disabled={exporting !== null}
-                    className="gap-1.5"
-                  />
-                }
-              >
-                <DownloadIcon />
-                {exporting === "png"
-                  ? "Saving image…"
-                  : exporting === "pdf"
-                    ? "Saving PDF…"
-                    : "Export"}
-                <ChevronDownIcon className="opacity-60" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-44">
-                <DropdownMenuItem
-                  disabled={exporting !== null}
-                  onClick={() => {
-                    void handleExport("png");
-                  }}
-                >
-                  <FileImageIcon />
-                  Download PNG
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  disabled={exporting !== null}
-                  onClick={() => {
-                    void handleExport("pdf");
-                  }}
-                >
-                  <FileTextIcon />
-                  Download PDF
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              variant="outline"
+              size="lg"
+              className="gap-1.5"
+              disabled={copyState === "copying"}
+              onClick={() => {
+                void handleCopyAsImage();
+              }}
+            >
+              {copyState === "copied" ? <CheckIcon /> : <ClipboardCopyIcon />}
+              {copyState === "copying"
+                ? "Copying…"
+                : copyState === "copied"
+                  ? "Copied"
+                  : "Copy as image"}
+            </Button>
           </div>
         </div>
       </div>
@@ -473,7 +444,7 @@ export function PowerRankingsDashboard() {
       {exportError ? (
         <Alert variant="destructive">
           <TriangleAlertIcon />
-          <AlertTitle>Export failed</AlertTitle>
+          <AlertTitle>Copy failed</AlertTitle>
           <AlertDescription>{exportError}</AlertDescription>
         </Alert>
       ) : null}

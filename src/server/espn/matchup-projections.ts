@@ -4,6 +4,7 @@ import { espnStyleWinProbability } from "@/server/espn/win-probability";
 const GAMES_PER_SEASON = 82;
 const CEILING_MULT = 1.65;
 const DEFAULT_PROJ_PER_GAME = 22;
+const GAME_FINAL_AFTER_MS = 4 * 60 * 60 * 1000;
 
 export type MatchupProjectionSide = {
   liveScore: number;
@@ -166,6 +167,9 @@ function remainingFractionForGame(input: {
 
   if (typeof input.game.date === "number") {
     if (input.game.date > input.now + 5 * 60 * 1000) return 1;
+    // No live progress (past week, or dropped off today's scoreboard): a game
+    // that tipped this long ago is over, even with overtime.
+    if (input.game.date <= input.now - GAME_FINAL_AFTER_MS) return 0;
     if (input.game.date <= input.now) return 0.45;
   }
 

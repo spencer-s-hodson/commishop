@@ -2,10 +2,12 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  buildMatchupWinModel,
   collectActivePlayerIds,
   isPlayerOut,
   liveSideScore,
   parseNbaScoreboardProgress,
+  projectMatchupSide,
 } from "@/server/espn/matchup-projections";
 
 describe("isPlayerOut", () => {
@@ -119,5 +121,45 @@ describe("parseNbaScoreboardProgress", () => {
     assert.equal(map.get(3)?.remainingFraction, 0.5);
     assert.equal(map.get(4)?.hasStarted, false);
     assert.equal(map.get(4)?.remainingFraction, 1);
+  });
+});
+
+describe("buildMatchupWinModel", () => {
+  it("returns 100/0 for a finished week with no live scoreboard", () => {
+    const now = Date.UTC(2026, 9, 26, 15);
+    const lastNight = now - 14 * 60 * 60 * 1000;
+    const side = (teamId: number, proTeamId: number, totalPoints: number) =>
+      projectMatchupSide({
+        side: {
+          teamId,
+          totalPoints,
+          rosterForCurrentScoringPeriod: {
+            entries: [
+              {
+                lineupSlotId: 0,
+                playerId: teamId,
+                playerPoolEntry: { player: { proTeamId } },
+              },
+            ],
+          },
+        },
+        scoringPeriodIds: [6],
+        currentScoringPeriodId: 6,
+        seasonYear: 2027,
+        proGamesByTeam: new Map([
+          [proTeamId, [{ scoringPeriodId: 6, date: lastNight }]],
+        ]),
+        projectionByPlayerId: new Map([[teamId, 40]]),
+        progressByProTeam: new Map(),
+        now,
+      });
+
+    const home = side(1, 10, 700);
+    const away = side(2, 11, 650);
+    assert.equal(home.gamesRemaining, 0);
+
+    const model = buildMatchupWinModel(home, away);
+    assert.equal(model.homeWinProbability, 1);
+    assert.equal(model.awayWinProbability, 0);
   });
 });
